@@ -1,0 +1,8 @@
+{
+  "name": "النسخه 1fahad",
+  "description": "Imported from GitHub: bbm055633/fahad",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

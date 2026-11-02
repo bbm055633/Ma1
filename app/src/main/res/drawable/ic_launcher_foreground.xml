@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer Glow Ring -->
+    <path
+        android:strokeColor="#40F59E0B"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000"
+        android:pathData="M54,26 A28,28 0 1,1 53.99,26 Z" />
+
+    <!-- Central Intelligent Diamond Star (Vision 2030 inspired tech motif) -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M54,28 L59,44 L75,44 L62,54 L67,70 L54,60 L41,70 L46,54 L33,44 L49,44 Z" />
+
+    <!-- Inner Core & Neural Spark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,34 L58,47 L71,47 L60,55 L64,68 L54,60 L44,68 L48,55 L37,47 L50,47 Z" />
+
+    <!-- Inner Emerald Core -->
+    <path
+        android:fillColor="#047857"
+        android:pathData="M54,44 L57,51 L64,51 L59,55 L61,62 L54,58 L47,62 L49,55 L44,51 L51,51 Z" />
+
+    <!-- AI Center Light -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M54,50 A4,4 0 1,1 53.99,50 Z" />
+
+    <!-- Intelligent Orbitals -->
+    <path
+        android:fillColor="#FDE68A"
+        android:pathData="M54,21 A3,3 0 1,1 53.99,21 Z" />
+    <path
+        android:fillColor="#FDE68A"
+        android:pathData="M54,87 A3,3 0 1,1 53.99,87 Z" />
+    <path
+        android:fillColor="#FDE68A"
+        android:pathData="M21,54 A3,3 0 1,1 20.99,54 Z" />
+    <path
+        android:fillColor="#FDE68A"
+        android:pathData="M87,54 A3,3 0 1,1 86.99,54 Z" />
+</vector>
