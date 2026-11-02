@@ -641,7 +641,14 @@ fun calculateIqamaTime(azanTime: String): String {
             val h = hStr.toIntOrNull() ?: 5
             val m = mStr.toIntOrNull() ?: 0
             
-            val totalM = h * 60 + m + 15
+            val isAzanPm = period.contains("م") || period.contains("PM", ignoreCase = true)
+            val isAzanAm = period.contains("ص") || period.contains("AM", ignoreCase = true)
+            val h24Start = when {
+                isAzanPm && h < 12 -> h + 12
+                isAzanAm && h == 12 -> 0
+                else -> h
+            }
+            val totalM = h24Start * 60 + m + 15
             val newH24 = (totalM / 60) % 24
             val newM = totalM % 60
             
