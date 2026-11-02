@@ -77,7 +77,7 @@ fun CalendarScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 80.dp, bottom = 80.dp, start = 16.dp, end = 16.dp)
+                    .padding(top = 8.dp, bottom = 80.dp, start = 16.dp, end = 16.dp)
             ) {
                 // Tab Content
             when (activeTopTab) {

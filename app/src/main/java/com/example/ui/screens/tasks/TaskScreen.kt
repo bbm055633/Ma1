@@ -68,7 +68,7 @@ fun TaskScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
-                    .padding(top = 80.dp, bottom = 90.dp),
+                    .padding(top = 8.dp, bottom = 90.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Header & Metrics Row

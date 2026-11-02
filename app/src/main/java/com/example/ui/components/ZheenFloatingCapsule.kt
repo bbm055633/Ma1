@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ui.theme.LocalCardTransparency
 
+import androidx.compose.material.icons.filled.Translate
+
 /**
  * بيانات المستخدم والإشعارات المتاحة عبر CompositionLocal
  */
@@ -40,7 +42,9 @@ data class UserProfileData(
     val userProfileImageUri: String? = null,
     val notificationCount: Int = 3,
     val onAvatarClick: (() -> Unit)? = null,
-    val onNotificationClick: (() -> Unit)? = null
+    val onNotificationClick: (() -> Unit)? = null,
+    val isEnglish: Boolean = false,
+    val onToggleLanguage: (() -> Unit)? = null
 )
 
 val LocalUserProfile = staticCompositionLocalOf { UserProfileData() }
@@ -162,38 +166,72 @@ fun ZheenFloatingCapsule(
                     }
                 }
 
-                // 3. أيقونة الإشعارات وشارة التنبيهات (ثابتة في كل الصفحات)
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .clickable { userProfile.onNotificationClick?.invoke() }
-                        .testTag("capsule_notification_button"),
-                    contentAlignment = Alignment.Center
+                // 3. زر تغيير اللغة الموحد وأيقونة الإشعارات
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Notifications,
-                        contentDescription = "الإشعارات",
-                        tint = primaryTextColor.copy(alpha = 0.85f),
-                        modifier = Modifier.size(22.dp)
-                    )
-
-                    if (userProfile.notificationCount > 0) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(x = (-2).dp, y = 2.dp)
-                                .size(16.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFE63946)),
-                            contentAlignment = Alignment.Center
+                    if (userProfile.onToggleLanguage != null) {
+                        Surface(
+                            onClick = { userProfile.onToggleLanguage.invoke() },
+                            shape = RoundedCornerShape(20.dp),
+                            color = if (isDarkMode) Color(0xFF282828) else Color(0xFFF0EFEA),
+                            border = BorderStroke(1.dp, if (isDarkMode) Color(0xFF383838) else Color(0x0F000000)),
+                            modifier = Modifier.testTag("capsule_language_toggle_button")
                         ) {
-                            Text(
-                                text = if (userProfile.notificationCount > 9) "9+" else userProfile.notificationCount.toString(),
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Translate,
+                                    contentDescription = if (userProfile.isEnglish) "Switch to Arabic" else "Switch to English",
+                                    tint = accentColor,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = if (userProfile.isEnglish) "عربي" else "EN",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = accentColor
+                                )
+                            }
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .clickable { userProfile.onNotificationClick?.invoke() }
+                            .testTag("capsule_notification_button"),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Notifications,
+                            contentDescription = "الإشعارات",
+                            tint = primaryTextColor.copy(alpha = 0.85f),
+                            modifier = Modifier.size(20.dp)
+                        )
+
+                        if (userProfile.notificationCount > 0) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-2).dp, y = 2.dp)
+                                    .size(15.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFE63946)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = if (userProfile.notificationCount > 9) "9+" else userProfile.notificationCount.toString(),
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }

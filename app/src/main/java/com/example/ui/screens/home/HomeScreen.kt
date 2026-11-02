@@ -80,7 +80,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 80.dp, bottom = 12.dp)
+                .padding(top = 8.dp, bottom = 12.dp)
         ) {
             // Main Content LazyColumn
             LazyColumn(

@@ -107,13 +107,15 @@ class MainActivity : ComponentActivity() {
                 val isLiveThemeActive = starryNightSettings.isEnabled
                 val cardTransparency = if (isLiveThemeActive) starryNightSettings.cardTransparency else 1.0f
 
-                val userProfileData = remember(userName, userProfileImageUri) {
+                val userProfileData = remember(userName, userProfileImageUri, isEnglish) {
                     com.example.ui.components.UserProfileData(
                         userName = userName,
                         userProfileImageUri = userProfileImageUri,
                         notificationCount = 3,
                         onAvatarClick = { viewModel.navigateTo(ActiveScreen.FullScreenMenu) },
-                        onNotificationClick = { viewModel.navigateTo(ActiveScreen.FullScreenMenu) }
+                        onNotificationClick = { viewModel.navigateTo(ActiveScreen.FullScreenMenu) },
+                        isEnglish = isEnglish,
+                        onToggleLanguage = { viewModel.toggleLanguage() }
                     )
                 }
 

@@ -180,7 +180,7 @@ fun WorshipScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 80.dp)
+                .padding(top = 8.dp)
         ) {
 
             // ================================================================
