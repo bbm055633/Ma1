@@ -30,15 +30,6 @@ import java.time.LocalDate
 /**
  * شاشة العبادات والأذكار - WorshipScreen
  * بتصميم محدث ينقل شريط التبويبات إلى أسفل الشاشة مباشرة فوق شريط التنقل السفلي
- *
- * الترتيب من الأعلى إلى الأسفل:
- * 1. عنوان الشاشة (الأذكار والعبادات) + زر اللغة EN/AR
- * 2. بطاقة الصلاة القادمة (الصلاة القادمة + الوقت المتبقي)
- * 3. بطاقة التاريخ الهجري + مستوى الالتزام بالصلوات
- * 4. تتبع الصلوات الخمس (الفجر، الظهر، العصر، المغرب، العشاء)
- * 5. صلاة الضحى + أذكار الصباح
- * 6. تبويبات التنقل السفلية: [أذكارى] | [قرآني] | [القبلة] | [صلاتي] مع فواصل واضحة
- * 7. شريط التنقل السفلي الرئيسي: [الرئيسية] [الوكلاء] [المنتجات] [التقويم] [العبادات]
  */
 @Composable
 fun WorshipScreen(
@@ -60,12 +51,9 @@ fun WorshipScreen(
     var currentSubTab by remember { mutableIntStateOf(0) }
     var selectedDayIndex by remember { mutableIntStateOf(0) }
 
-    // Dialog & Session screen states
+    // Dialog & Session screen states managed using unified WorshipDialogState
     var activeAdhkarSession by remember { mutableStateOf<Boolean?>(null) } // true: morning, false: evening, null: closed
-    var showMorningSheet by remember { mutableStateOf(false) }
-    var showEveningSheet by remember { mutableStateOf(false) }
-    var showQiblaDialog by remember { mutableStateOf(false) }
-    var showAchievementsDialog by remember { mutableStateOf(false) }
+    var dialogState by remember { mutableStateOf<WorshipDialogState>(WorshipDialogState.None) }
 
     // Full screen Adhkar session overlay (جلسة الأذكار المركّزة)
     if (activeAdhkarSession != null) {
@@ -77,58 +65,36 @@ fun WorshipScreen(
         return
     }
 
-    // Modal dialog for morning adhkar reading
-    if (showMorningSheet) {
-        MorningAdhkarFullDialog(
-            adhkarList = morningAdhkar,
-            onIncrement = { id -> viewModel.incrementAdhkar(true, id) },
-            onResetAll = { viewModel.resetAdhkar(true) },
-            onDismiss = { showMorningSheet = false }
-        )
-    }
-
-    // Modal dialog for evening adhkar reading
-    if (showEveningSheet) {
-        MorningAdhkarFullDialog(
-            adhkarList = eveningAdhkar,
-            onIncrement = { id -> viewModel.incrementAdhkar(false, id) },
-            onResetAll = { viewModel.resetAdhkar(false) },
-            onDismiss = { showEveningSheet = false }
-        )
-    }
-
-    // Qibla Compass full dialog
-    if (showQiblaDialog) {
-        QiblaCompassDialog(onDismiss = { showQiblaDialog = false })
-    }
-
-    // Full achievements history dialog
-    if (showAchievementsDialog) {
-        AchievementsFullDialog(onDismiss = { showAchievementsDialog = false })
-    }
-
-    // Helper functions for prayer tracking and attendance
-    fun parseAttendance(value: String): AttendanceColumn {
-        return when (value.uppercase()) {
-            "IN_MOSQUE", "JAMAAH" -> AttendanceColumn.IN_MOSQUE
-            "AT_HOME", "INDIVIDUAL" -> AttendanceColumn.AT_HOME
-            "LATE" -> AttendanceColumn.LATE
-            else -> AttendanceColumn.NONE
+    // Render active dialog using sealed WorshipDialogState
+    when (dialogState) {
+        is WorshipDialogState.MorningAdhkar -> {
+            MorningAdhkarFullDialog(
+                adhkarList = morningAdhkar,
+                onIncrement = { id -> viewModel.incrementAdhkar(true, id) },
+                onResetAll = { viewModel.resetAdhkar(true) },
+                onDismiss = { dialogState = WorshipDialogState.None }
+            )
         }
-    }
-
-    fun parseBannerAttendance(value: String): PrayerAttendance {
-        return when (value.uppercase()) {
-            "IN_MOSQUE", "JAMAAH" -> PrayerAttendance.JAMAAH
-            "AT_HOME", "INDIVIDUAL" -> PrayerAttendance.INDIVIDUAL
-            "LATE" -> PrayerAttendance.LATE
-            else -> PrayerAttendance.NONE
+        is WorshipDialogState.EveningAdhkar -> {
+            MorningAdhkarFullDialog(
+                adhkarList = eveningAdhkar,
+                onIncrement = { id -> viewModel.incrementAdhkar(false, id) },
+                onResetAll = { viewModel.resetAdhkar(false) },
+                onDismiss = { dialogState = WorshipDialogState.None }
+            )
         }
+        is WorshipDialogState.Qibla -> {
+            QiblaCompassDialog(onDismiss = { dialogState = WorshipDialogState.None })
+        }
+        is WorshipDialogState.Achievements -> {
+            AchievementsFullDialog(onDismiss = { dialogState = WorshipDialogState.None })
+        }
+        is WorshipDialogState.None -> {}
     }
 
     val currentPrayerRecord = selectedPrayer ?: PrayerEntity(date = selectedDate)
 
-    fun updateAttendance(prayerName: String, col: AttendanceColumn) {
+    fun updateAttendance(prayerName: String, col: PrayerStatus) {
         val updated = when (prayerName.lowercase()) {
             "fajr" -> currentPrayerRecord.copy(fajr = col.name)
             "dhuhr" -> currentPrayerRecord.copy(dhuhr = col.name)
@@ -189,7 +155,7 @@ fun WorshipScreen(
         ) {
 
             // ================================================================
-            // 2. المحتوى الرئيسي التفاعلي حسب التبويب المختار
+            // المحتوى الرئيسي التفاعلي حسب التبويب المختار
             // ================================================================
             Box(
                 modifier = Modifier
@@ -198,7 +164,7 @@ fun WorshipScreen(
             ) {
                 when (currentSubTab) {
                     0 -> {
-                        // TAB 0: صلاتي (الترتيب الدقيق المطلوب)
+                        // TAB 0: صلاتي
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -206,7 +172,7 @@ fun WorshipScreen(
                             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            // 2.1. بطاقة العبادات والالتزام الموحدة (العد التنازلي + التاريخ + تتبع الصلوات)
+                            // 2.1. بطاقة العبادات والالتزام الموحدة
                             item {
                                 val sunnahsDone = listOf(
                                     currentPrayerRecord.fajrQ,
@@ -217,11 +183,11 @@ fun WorshipScreen(
                                 ).count { it }
 
                                 WorshipCommitmentBanner(
-                                    fajrStatus = parseBannerAttendance(currentPrayerRecord.fajr),
-                                    dhuhrStatus = parseBannerAttendance(currentPrayerRecord.dhuhr),
-                                    asrStatus = parseBannerAttendance(currentPrayerRecord.asr),
-                                    maghribStatus = parseBannerAttendance(currentPrayerRecord.maghrib),
-                                    ishaStatus = parseBannerAttendance(currentPrayerRecord.isha),
+                                    fajrStatus = parsePrayerStatus(currentPrayerRecord.fajr),
+                                    dhuhrStatus = parsePrayerStatus(currentPrayerRecord.dhuhr),
+                                    asrStatus = parsePrayerStatus(currentPrayerRecord.asr),
+                                    maghribStatus = parsePrayerStatus(currentPrayerRecord.maghrib),
+                                    ishaStatus = parsePrayerStatus(currentPrayerRecord.isha),
                                     sunnahCount = sunnahsDone,
                                     streakDays = streaks.fajrMasjid.coerceAtLeast(1),
                                     hijriDate = hijriDate,
@@ -234,85 +200,74 @@ fun WorshipScreen(
                                     },
                                     onNextDay = {
                                         if (selectedDayIndex > 0) {
-                                            val prev = selectedDayIndex - 1
-                                            selectedDayIndex = prev
-                                            val cal = java.util.Calendar.getInstance()
-                                            cal.add(java.util.Calendar.DAY_OF_YEAR, -prev)
-                                            val newDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(cal.time)
+                                            val newDate = LocalDate.parse(selectedDate).plusDays(1).toString()
                                             viewModel.setSelectedDate(newDate)
+                                            selectedDayIndex--
                                         }
                                     },
-                                    onOpenQibla = { showQiblaDialog = true },
+                                    onOpenQibla = { dialogState = WorshipDialogState.Qibla },
                                     onToggleAlert = { viewModel.togglePrayerAlerts() },
                                     isAlertEnabled = isPrayerAlertsEnabled
                                 )
                             }
 
-                            // 2.3. تتبع الصلوات الخمس (الفجر، الظهر، العصر، المغرب، العشاء)
+                            // 2.2. تتبع الصلوات الخمس باستخدام PrayerTrackingData
                             item {
-                                FaithJourneyPrayerTrackingCard(
+                                val trackingData = PrayerTrackingData(
                                     prayerTimes = prayerTimes,
                                     selectedDayIndex = selectedDayIndex,
                                     onDayChange = { newIdx ->
+                                        val diff = (newIdx - selectedDayIndex).toLong()
+                                        val newDate = LocalDate.parse(selectedDate).plusDays(diff).toString()
                                         selectedDayIndex = newIdx
-                                        val cal = java.util.Calendar.getInstance()
-                                        cal.add(java.util.Calendar.DAY_OF_YEAR, -newIdx)
-                                        val newDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(cal.time)
                                         viewModel.setSelectedDate(newDate)
                                     },
                                     isEnglish = isEnglish,
-                                    // Fajr
-                                    fajrAttendance = parseAttendance(currentPrayerRecord.fajr),
+                                    fajrAttendance = parsePrayerStatus(currentPrayerRecord.fajr),
                                     onFajrAttendanceChange = { col -> updateAttendance("fajr", col) },
                                     fajrSunnahQabliyah = currentPrayerRecord.fajrQ,
                                     onToggleFajrSunnahQabliyah = { toggleSunnah("fajr", true) },
-                                    // Duha, Adhkar, Qiyam
                                     isDuhaDone = currentPrayerRecord.duha,
                                     onToggleDuha = { toggleDuha() },
                                     isMorningAdhkarDone = currentPrayerRecord.morningAdhkar,
                                     onToggleMorningAdhkar = { toggleMorningAdhkar() },
-                                    onOpenMorningAdhkarSheet = { showMorningSheet = true },
+                                    onOpenMorningAdhkarSheet = { dialogState = WorshipDialogState.MorningAdhkar },
                                     morningAdhkarList = morningAdhkar,
-                                    // Dhuhr
-                                    dhuhrAttendance = parseAttendance(currentPrayerRecord.dhuhr),
+                                    dhuhrAttendance = parsePrayerStatus(currentPrayerRecord.dhuhr),
                                     onDhuhrAttendanceChange = { col -> updateAttendance("dhuhr", col) },
                                     dhuhrSunnahQabliyah = currentPrayerRecord.dhuhrQ,
                                     onToggleDhuhrSunnahQabliyah = { toggleSunnah("dhuhr", true) },
                                     dhuhrSunnahBadiyah = currentPrayerRecord.dhuhrB,
                                     onToggleDhuhrSunnahBadiyah = { toggleSunnah("dhuhr", false) },
-                                    // Asr
-                                    asrAttendance = parseAttendance(currentPrayerRecord.asr),
+                                    asrAttendance = parsePrayerStatus(currentPrayerRecord.asr),
                                     onAsrAttendanceChange = { col -> updateAttendance("asr", col) },
-                                    // Maghrib
-                                    maghribAttendance = parseAttendance(currentPrayerRecord.maghrib),
+                                    maghribAttendance = parsePrayerStatus(currentPrayerRecord.maghrib),
                                     onMaghribAttendanceChange = { col -> updateAttendance("maghrib", col) },
                                     maghribSunnahBadiyah = currentPrayerRecord.maghribB,
                                     onToggleMaghribSunnahBadiyah = { toggleSunnah("maghrib", false) },
-                                    // Isha
-                                    ishaAttendance = parseAttendance(currentPrayerRecord.isha),
+                                    ishaAttendance = parsePrayerStatus(currentPrayerRecord.isha),
                                     onIshaAttendanceChange = { col -> updateAttendance("isha", col) },
                                     ishaSunnahBadiyah = currentPrayerRecord.ishaB,
                                     onToggleIshaSunnahBadiyah = { toggleSunnah("isha", false) },
-                                    // Qiyam & Evening Adhkar
                                     isQiyamDone = currentPrayerRecord.qiyam,
                                     onToggleQiyam = { toggleQiyam() },
                                     isEveningAdhkarDone = currentPrayerRecord.eveningAdhkar,
                                     onToggleEveningAdhkar = { toggleEveningAdhkar() },
-                                    onOpenEveningAdhkarSheet = { showEveningSheet = true },
+                                    onOpenEveningAdhkarSheet = { dialogState = WorshipDialogState.EveningAdhkar },
                                     isFastingDone = currentPrayerRecord.fasting,
                                     onToggleFasting = { toggleFasting() },
                                     streaks = streaks
                                 )
+
+                                FaithJourneyPrayerTrackingCard(trackingData = trackingData)
                             }
 
-
-
-                            // 2.5. تحليل الالتزام بالعبادات والرسوم البيانية
+                            // 2.3. تحليل الالتزام بالعبادات والرسوم البيانية
                             item {
                                 PrayerWeeklyTrendSection()
                             }
 
-                            // 2.6. زر بدء جلسة أذكار الصباح المركّزة
+                            // 2.4. زر بدء جلسة أذكار الصباح المركّزة
                             item {
                                 Button(
                                     onClick = { activeAdhkarSession = true },
@@ -338,12 +293,12 @@ fun WorshipScreen(
                             hijriDate = hijriDate,
                             prayerTimes = prayerTimes,
                             isEnglish = isEnglish,
-                            onOpenFullscreenQibla = { showQiblaDialog = true }
+                            onOpenFullscreenQibla = { dialogState = WorshipDialogState.Qibla }
                         )
                     }
 
                     2 -> {
-                        // TAB 2: قرآني (QuranScreen الجديد بتصميم أخضر مائي وبطاقات شفافة)
+                        // TAB 2: قرآني
                         QuranScreen(
                             khatmah = khatmah,
                             onPageChanged = { newPage ->
@@ -354,7 +309,7 @@ fun WorshipScreen(
                     }
 
                     3 -> {
-                        // TAB 3: أذكارى (AdhkarPage الجديد بتصميم أخضر غامق وشبكة بطاقات وأدعية صحيح مسلم)
+                        // TAB 3: أذكارى
                         AdhkarPage(
                             onBack = { currentSubTab = 0 }
                         )
@@ -363,8 +318,7 @@ fun WorshipScreen(
             }
 
             // ================================================================
-            // 3. تبويبات التنقل المنقولة إلى الأسفل مباشرة فوق شريط التنقل السفلي
-            // بتصميم أفقي نظيف مع فواصل واضحة بينها: [أذكارى] [قرآني] [القبلة] [صلاتي]
+            // 3. تبويبات التنقل السفلي
             // ================================================================
             WorshipBottomDockedTabBar(
                 selectedTab = currentSubTab,
@@ -378,9 +332,7 @@ fun WorshipScreen(
 }
 
 /**
- * شريط التبويبات السفلي النظيف مع فواصل واضحة بين التبويبات
- * يوضع مباشرة فوق شريط التنقل السفلي للـ App
- * الترتيب: [أذكارى] [قرآني] [القبلة] [صلاتي]
+ * شريط التبويبات السفلي
  */
 @Composable
 private fun WorshipBottomDockedTabBar(
@@ -450,7 +402,6 @@ private fun WorshipBottomDockedTabBar(
                     }
                 }
 
-                // فاصل رأسي واضح بين التبويبات
                 if (index < tabs.lastIndex) {
                     VerticalDivider(
                         modifier = Modifier

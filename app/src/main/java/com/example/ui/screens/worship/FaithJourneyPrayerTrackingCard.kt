@@ -48,13 +48,7 @@ val FaithGoldPrimary = ActiveSunGold
 val FaithGoldLight = Color(0xFFE09B13)
 val FaithGoldDark = Color(0xFF996408)
 
-// Prayer Attendance Column Selection
-enum class AttendanceColumn {
-    NONE,
-    IN_MOSQUE,  // في الجامع
-    AT_HOME,    // المنفرد
-    LATE        // متأخر
-}
+// Using unified PrayerStatus enum from PrayerAttendanceEnum.kt
 
 /**
  * Top Tab Bar matching the exact pill design from the user's screenshot
@@ -149,6 +143,57 @@ fun FaithJourneyTopTabBar(
 }
 
 /**
+ * Main Faith Journey Card taking PrayerTrackingData object.
+ */
+@Composable
+fun FaithJourneyPrayerTrackingCard(
+    trackingData: PrayerTrackingData,
+    modifier: Modifier = Modifier
+) {
+    FaithJourneyPrayerTrackingCard(
+        prayerTimes = trackingData.prayerTimes,
+        selectedDayIndex = trackingData.selectedDayIndex,
+        onDayChange = trackingData.onDayChange,
+        isEnglish = trackingData.isEnglish,
+        fajrAttendance = trackingData.fajrAttendance,
+        onFajrAttendanceChange = trackingData.onFajrAttendanceChange,
+        fajrSunnahQabliyah = trackingData.fajrSunnahQabliyah,
+        onToggleFajrSunnahQabliyah = trackingData.onToggleFajrSunnahQabliyah,
+        isDuhaDone = trackingData.isDuhaDone,
+        onToggleDuha = trackingData.onToggleDuha,
+        isMorningAdhkarDone = trackingData.isMorningAdhkarDone,
+        onToggleMorningAdhkar = trackingData.onToggleMorningAdhkar,
+        onOpenMorningAdhkarSheet = trackingData.onOpenMorningAdhkarSheet,
+        morningAdhkarList = trackingData.morningAdhkarList,
+        dhuhrAttendance = trackingData.dhuhrAttendance,
+        onDhuhrAttendanceChange = trackingData.onDhuhrAttendanceChange,
+        dhuhrSunnahQabliyah = trackingData.dhuhrSunnahQabliyah,
+        onToggleDhuhrSunnahQabliyah = trackingData.onToggleDhuhrSunnahQabliyah,
+        dhuhrSunnahBadiyah = trackingData.dhuhrSunnahBadiyah,
+        onToggleDhuhrSunnahBadiyah = trackingData.onToggleDhuhrSunnahBadiyah,
+        asrAttendance = trackingData.asrAttendance,
+        onAsrAttendanceChange = trackingData.onAsrAttendanceChange,
+        maghribAttendance = trackingData.maghribAttendance,
+        onMaghribAttendanceChange = trackingData.onMaghribAttendanceChange,
+        maghribSunnahBadiyah = trackingData.maghribSunnahBadiyah,
+        onToggleMaghribSunnahBadiyah = trackingData.onToggleMaghribSunnahBadiyah,
+        ishaAttendance = trackingData.ishaAttendance,
+        onIshaAttendanceChange = trackingData.onIshaAttendanceChange,
+        ishaSunnahBadiyah = trackingData.ishaSunnahBadiyah,
+        onToggleIshaSunnahBadiyah = trackingData.onToggleIshaSunnahBadiyah,
+        isQiyamDone = trackingData.isQiyamDone,
+        onToggleQiyam = trackingData.onToggleQiyam,
+        isEveningAdhkarDone = trackingData.isEveningAdhkarDone,
+        onToggleEveningAdhkar = trackingData.onToggleEveningAdhkar,
+        onOpenEveningAdhkarSheet = trackingData.onOpenEveningAdhkarSheet,
+        isFastingDone = trackingData.isFastingDone,
+        onToggleFasting = trackingData.onToggleFasting,
+        streaks = trackingData.streaks,
+        modifier = modifier
+    )
+}
+
+/**
  * Main Faith Journey Card: "رحلة الإيمان: أتمم الفروض والسنن"
  * Faithful reproduction of the uploaded screenshot layout and styling.
  */
@@ -159,8 +204,8 @@ fun FaithJourneyPrayerTrackingCard(
     onDayChange: (Int) -> Unit,
     isEnglish: Boolean = false,
     // Fajr
-    fajrAttendance: AttendanceColumn,
-    onFajrAttendanceChange: (AttendanceColumn) -> Unit,
+    fajrAttendance: PrayerStatus,
+    onFajrAttendanceChange: (PrayerStatus) -> Unit,
     fajrSunnahQabliyah: Boolean,
     onToggleFajrSunnahQabliyah: () -> Unit,
     // Duha, Adhkar, Qiyam
@@ -171,23 +216,23 @@ fun FaithJourneyPrayerTrackingCard(
     onOpenMorningAdhkarSheet: () -> Unit,
     morningAdhkarList: List<com.example.domain.models.AdhkarItem> = emptyList(),
     // Dhuhr
-    dhuhrAttendance: AttendanceColumn,
-    onDhuhrAttendanceChange: (AttendanceColumn) -> Unit,
+    dhuhrAttendance: PrayerStatus,
+    onDhuhrAttendanceChange: (PrayerStatus) -> Unit,
     dhuhrSunnahQabliyah: Boolean,
     onToggleDhuhrSunnahQabliyah: () -> Unit,
     dhuhrSunnahBadiyah: Boolean,
     onToggleDhuhrSunnahBadiyah: () -> Unit,
     // Asr
-    asrAttendance: AttendanceColumn,
-    onAsrAttendanceChange: (AttendanceColumn) -> Unit,
+    asrAttendance: PrayerStatus,
+    onAsrAttendanceChange: (PrayerStatus) -> Unit,
     // Maghrib
-    maghribAttendance: AttendanceColumn,
-    onMaghribAttendanceChange: (AttendanceColumn) -> Unit,
+    maghribAttendance: PrayerStatus,
+    onMaghribAttendanceChange: (PrayerStatus) -> Unit,
     maghribSunnahBadiyah: Boolean,
     onToggleMaghribSunnahBadiyah: () -> Unit,
     // Isha
-    ishaAttendance: AttendanceColumn,
-    onIshaAttendanceChange: (AttendanceColumn) -> Unit,
+    ishaAttendance: PrayerStatus,
+    onIshaAttendanceChange: (PrayerStatus) -> Unit,
     ishaSunnahBadiyah: Boolean,
     onToggleIshaSunnahBadiyah: () -> Unit,
     // Qiyam & Evening Adhkar
@@ -772,7 +817,7 @@ fun PrayerTrackingTableRow(
     azanTime: String,
     isEnglish: Boolean = false,
     attendance: AttendanceColumn,
-    onAttendanceSelect: (AttendanceColumn) -> Unit,
+    onAttendanceSelect: (PrayerStatus) -> Unit,
     hasQabliyah: Boolean,
     sunnahQabliyah: Boolean,
     onToggleSunnahQabliyah: () -> Unit,
@@ -794,8 +839,8 @@ fun PrayerTrackingTableRow(
     val isDarkMode = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
     val rowBg = when {
-        attendance == AttendanceColumn.LATE -> if (isDarkMode) Color(0xFF451A03).copy(alpha = 0.4f) else Color(0xFFFEF3C7) // Light orange
-        attendance == AttendanceColumn.IN_MOSQUE || attendance == AttendanceColumn.AT_HOME -> if (isDarkMode) Color(0xFF064E3B).copy(alpha = 0.4f) else Color(0xFFD1FAE5) // Light green
+        attendance == PrayerStatus.LATE -> if (isDarkMode) Color(0xFF451A03).copy(alpha = 0.4f) else Color(0xFFFEF3C7) // Light orange
+        attendance == PrayerStatus.IN_MOSQUE || attendance == PrayerStatus.INDIVIDUAL -> if (isDarkMode) Color(0xFF064E3B).copy(alpha = 0.4f) else Color(0xFFD1FAE5) // Light green
         isNextPrayer -> Color.Transparent
         hasPrayerTimePassed(azanTime, selectedDayIndex) -> if (isDarkMode) Color(0xFF7F1D1D).copy(alpha = 0.35f) else Color(0xFFFEE2E2) // Very light red
         else -> Color.Transparent
@@ -892,10 +937,10 @@ fun PrayerTrackingTableRow(
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
             Box(contentAlignment = Alignment.TopCenter) {
                 GlowingLocationButton(
-                    isSelected = attendance == AttendanceColumn.IN_MOSQUE,
+                    isSelected = attendance == PrayerStatus.IN_MOSQUE,
                     icon = Icons.Default.Mosque,
                     onClick = {
-                        onAttendanceSelect(if (attendance == AttendanceColumn.IN_MOSQUE) AttendanceColumn.NONE else AttendanceColumn.IN_MOSQUE)
+                        onAttendanceSelect(if (attendance == PrayerStatus.IN_MOSQUE) PrayerStatus.NONE else PrayerStatus.IN_MOSQUE)
                     },
                     testTag = "${prayerName}_in_mosque"
                 )
@@ -911,14 +956,14 @@ fun PrayerTrackingTableRow(
             }
         }
 
-        // 4. At Home
+        // 4. At Home / Individual
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
             Box(contentAlignment = Alignment.TopCenter) {
                 GlowingLocationButton(
-                    isSelected = attendance == AttendanceColumn.AT_HOME,
+                    isSelected = attendance == PrayerStatus.INDIVIDUAL,
                     icon = Icons.Default.Home,
                     onClick = {
-                        onAttendanceSelect(if (attendance == AttendanceColumn.AT_HOME) AttendanceColumn.NONE else AttendanceColumn.AT_HOME)
+                        onAttendanceSelect(if (attendance == PrayerStatus.INDIVIDUAL) PrayerStatus.NONE else PrayerStatus.INDIVIDUAL)
                     },
                     testTag = "${prayerName}_at_home"
                 )
@@ -938,10 +983,10 @@ fun PrayerTrackingTableRow(
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
             Box(contentAlignment = Alignment.TopCenter) {
                 GlowingLocationButton(
-                    isSelected = attendance == AttendanceColumn.LATE,
+                    isSelected = attendance == PrayerStatus.LATE,
                     icon = Icons.Default.History,
                     onClick = {
-                        onAttendanceSelect(if (attendance == AttendanceColumn.LATE) AttendanceColumn.NONE else AttendanceColumn.LATE)
+                        onAttendanceSelect(if (attendance == PrayerStatus.LATE) PrayerStatus.NONE else PrayerStatus.LATE)
                     },
                     testTag = "${prayerName}_late"
                 )
@@ -1152,8 +1197,8 @@ fun PrayerTrackingTableRow(
     prayerName: String,
     azanTime: String,
     iqamaTime: String,
-    attendance: AttendanceColumn,
-    onAttendanceSelect: (AttendanceColumn) -> Unit,
+    attendance: PrayerStatus,
+    onAttendanceSelect: (PrayerStatus) -> Unit,
     sunnahQabliyah: Boolean,
     onToggleSunnahQabliyah: () -> Unit,
     sunnahBadiyah: Boolean,
@@ -1193,10 +1238,10 @@ fun PrayerTrackingTableRow(
             contentAlignment = Alignment.Center
         ) {
             GlowingCyanCircle(
-                isSelected = attendance == AttendanceColumn.IN_MOSQUE,
+                isSelected = attendance == PrayerStatus.IN_MOSQUE,
                 onClick = {
                     onAttendanceSelect(
-                        if (attendance == AttendanceColumn.IN_MOSQUE) AttendanceColumn.NONE else AttendanceColumn.IN_MOSQUE
+                        if (attendance == PrayerStatus.IN_MOSQUE) PrayerStatus.NONE else PrayerStatus.IN_MOSQUE
                     )
                 },
                 testTag = "${prayerName}_in_mosque"
@@ -1209,10 +1254,10 @@ fun PrayerTrackingTableRow(
             contentAlignment = Alignment.Center
         ) {
             GlowingCyanCircle(
-                isSelected = attendance == AttendanceColumn.AT_HOME,
+                isSelected = attendance == PrayerStatus.INDIVIDUAL,
                 onClick = {
                     onAttendanceSelect(
-                        if (attendance == AttendanceColumn.AT_HOME) AttendanceColumn.NONE else AttendanceColumn.AT_HOME
+                        if (attendance == PrayerStatus.INDIVIDUAL) PrayerStatus.NONE else PrayerStatus.INDIVIDUAL
                     )
                 },
                 testTag = "${prayerName}_at_home"
@@ -1225,10 +1270,10 @@ fun PrayerTrackingTableRow(
             contentAlignment = Alignment.Center
         ) {
             GlowingCyanCircle(
-                isSelected = attendance == AttendanceColumn.LATE,
+                isSelected = attendance == PrayerStatus.LATE,
                 onClick = {
                     onAttendanceSelect(
-                        if (attendance == AttendanceColumn.LATE) AttendanceColumn.NONE else AttendanceColumn.LATE
+                        if (attendance == PrayerStatus.LATE) PrayerStatus.NONE else PrayerStatus.LATE
                     )
                 },
                 testTag = "${prayerName}_late"

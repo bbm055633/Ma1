@@ -62,8 +62,8 @@ fun WorshipCommitmentBanner(
         Triple("العشاء", ishaStatus, "🌌")
     )
 
-    val completedCount = statuses.count { it.second != PrayerAttendance.NONE }
-    val jamaahCount = statuses.count { it.second == PrayerAttendance.JAMAAH }
+    val completedCount = statuses.count { it.second != PrayerStatus.NONE }
+    val jamaahCount = statuses.count { it.second == PrayerStatus.IN_MOSQUE }
     val progress = completedCount / 5f
     val isAllCompleted = completedCount == 5
 
