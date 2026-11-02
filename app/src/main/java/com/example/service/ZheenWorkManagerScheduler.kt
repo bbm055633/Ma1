@@ -78,6 +78,41 @@ object ZheenWorkManagerScheduler {
                 ExistingPeriodicWorkPolicy.UPDATE,
                 taskWorkRequest
             )
+
+            // 3. Daily Morning Adhkar Reminder Work
+            scheduleMorningAdhkarReminder(context)
+        } catch (_: Exception) {
+        }
+    }
+
+    fun scheduleMorningAdhkarReminder(context: Context, hour: Int = 8, minute: Int = 0) {
+        val workManager = getWorkManagerSafely(context) ?: return
+        try {
+            val nowCal = java.util.Calendar.getInstance()
+            val targetCal = java.util.Calendar.getInstance().apply {
+                set(java.util.Calendar.HOUR_OF_DAY, hour)
+                set(java.util.Calendar.MINUTE, minute)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+                if (before(nowCal)) {
+                    add(java.util.Calendar.DAY_OF_YEAR, 1)
+                }
+            }
+            val delayMillis = targetCal.timeInMillis - nowCal.timeInMillis
+
+            val adhkarRequest = PeriodicWorkRequestBuilder<MorningAdhkarReminderWorker>(
+                24, TimeUnit.HOURS,
+                30, TimeUnit.MINUTES
+            )
+                .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
+                .addTag("zheen_morning_adhkar_reminder")
+                .build()
+
+            workManager.enqueueUniquePeriodicWork(
+                "zheen_morning_adhkar_reminder",
+                ExistingPeriodicWorkPolicy.UPDATE,
+                adhkarRequest
+            )
         } catch (_: Exception) {
         }
     }

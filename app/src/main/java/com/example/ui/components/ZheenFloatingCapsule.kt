@@ -141,66 +141,98 @@ fun ZheenFloatingCapsule(
             .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 4.dp)
             .testTag("zheen_floating_capsule_wrapper"),
-        contentAlignment = Alignment.TopCenter
+        contentAlignment = if (isCollapsed) Alignment.TopEnd else Alignment.TopCenter
     ) {
         Surface(
             shape = CircleShape,
             color = animatedBgColor,
             shadowElevation = animatedElevation,
-            border = BorderStroke(if (isCollapsed) 0.dp else 1.dp, animatedBorderColor),
+            border = BorderStroke(1.dp, animatedBorderColor),
             modifier = Modifier
-                .then(if (isCollapsed) Modifier.wrapContentWidth() else Modifier.fillMaxWidth())
-                .height(capsuleHeight)
+                .then(
+                    if (isCollapsed) {
+                        Modifier.size(capsuleHeight).clickable { showNotificationPopup = true }
+                    } else {
+                        Modifier.fillMaxWidth().height(capsuleHeight)
+                    }
+                )
                 .animateContentSize(animationSpec = tween(250))
                 .testTag("zheen_floating_capsule")
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // 1. الصورة الشخصية للمستخدم (حواف دائرية كاملة بدون أي زوايا حادة)
+            if (isCollapsed) {
                 Box(
                     modifier = Modifier
-                        .size(if (isCollapsed) 36.dp else 40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-                        .clickable { userProfile.onAvatarClick?.invoke() }
-                        .testTag("capsule_user_avatar"),
+                        .fillMaxSize()
+                        .testTag("capsule_collapsed_circle"),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (!userProfile.userProfileImageUri.isNullOrEmpty()) {
-                        AsyncImage(
-                            model = userProfile.userProfileImageUri,
-                            contentDescription = "الصورة الشخصية",
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        val initialLetter = userProfile.userName.trim().take(1).ifEmpty { "ف" }
-                        Text(
-                            text = initialLetter,
-                            fontSize = if (isCollapsed) 16.sp else 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = accentColor
-                        )
+                    Icon(
+                        imageVector = Icons.Outlined.Notifications,
+                        contentDescription = "الملف الشخصي",
+                        tint = primaryTextColor.copy(alpha = 0.9f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    if (userProfile.notificationCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 2.dp, y = (-2).dp)
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFE63946)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = userProfile.notificationCount.toString(),
+                                fontSize = 7.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
-
-                // 2. عنوان الشاشة في الوسط (يختفي بانسيابية تامة عند التمرير لأسفل ويعود عند التمرير لأعلى)
-                AnimatedVisibility(
-                    visible = !isCollapsed,
-                    enter = fadeIn(animationSpec = tween(220)) + expandHorizontally(),
-                    exit = fadeOut(animationSpec = tween(150)) + shrinkHorizontally(),
+            } else {
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp)
+                        .fillMaxSize()
+                        .padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    // 1. الصورة الشخصية للمستخدم
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                            .clickable { userProfile.onAvatarClick?.invoke() }
+                            .testTag("capsule_user_avatar"),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (!userProfile.userProfileImageUri.isNullOrEmpty()) {
+                            AsyncImage(
+                                model = userProfile.userProfileImageUri,
+                                contentDescription = "الصورة الشخصية",
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            val initialLetter = userProfile.userName.trim().take(1).ifEmpty { "ف" }
+                            Text(
+                                text = initialLetter,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = accentColor
+                            )
+                        }
+                    }
+
+                    // 2. عنوان الشاشة في الوسط
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 8.dp)
                     ) {
                         AnimatedContent(
                             targetState = screenTitle,
@@ -221,46 +253,64 @@ fun ZheenFloatingCapsule(
                             )
                         }
                     }
-                }
 
-                // 3. أيقونة الإشعارات (حواف دائرية ناعمة CircleShape بدون أي مربعات أو زوايا حادة)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // زر الجرس - يفتح لوحة إشعارات منبثقة بتصميم دائري كامل
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(if (isDarkMode) Color(0xFF282828) else Color(0xFFF1EFEA))
-                            .clickable { showNotificationPopup = true }
-                            .testTag("capsule_notification_button"),
-                        contentAlignment = Alignment.Center
+                    // 3. أزرار الجهة اليمنى (زر اللغة وزر الإشعارات)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Notifications,
-                            contentDescription = "الإشعارات",
-                            tint = primaryTextColor.copy(alpha = 0.85f),
-                            modifier = Modifier.size(18.dp)
-                        )
-
-                        if (userProfile.notificationCount > 0) {
+                        if (userProfile.onToggleLanguage != null) {
                             Box(
                                 modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = 1.dp, y = (-1).dp)
-                                    .size(14.dp)
+                                    .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFFE63946)),
+                                    .background(if (isDarkMode) Color(0xFF282828) else Color(0xFFF1EFEA))
+                                    .clickable { userProfile.onToggleLanguage?.invoke() }
+                                    .testTag("capsule_language_button"),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = if (userProfile.notificationCount > 9) "9+" else userProfile.notificationCount.toString(),
-                                    fontSize = 8.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                Icon(
+                                    imageVector = Icons.Default.Translate,
+                                    contentDescription = "تغيير اللغة",
+                                    tint = primaryTextColor.copy(alpha = 0.85f),
+                                    modifier = Modifier.size(18.dp)
                                 )
+                            }
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(if (isDarkMode) Color(0xFF282828) else Color(0xFFF1EFEA))
+                                .clickable { showNotificationPopup = true }
+                                .testTag("capsule_notification_button"),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Notifications,
+                                contentDescription = "الإشعارات",
+                                tint = primaryTextColor.copy(alpha = 0.85f),
+                                modifier = Modifier.size(18.dp)
+                            )
+
+                            if (userProfile.notificationCount > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = 1.dp, y = (-1).dp)
+                                        .size(14.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFE63946)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = if (userProfile.notificationCount > 9) "9+" else userProfile.notificationCount.toString(),
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
                             }
                         }
                     }

@@ -275,6 +275,7 @@ fun WorshipScreen(
                                     isMorningAdhkarDone = currentPrayerRecord.morningAdhkar,
                                     onToggleMorningAdhkar = { toggleMorningAdhkar() },
                                     onOpenMorningAdhkarSheet = { showMorningSheet = true },
+                                    morningAdhkarList = morningAdhkar,
                                     // Dhuhr
                                     dhuhrAttendance = parseAttendance(currentPrayerRecord.dhuhr),
                                     onDhuhrAttendanceChange = { col -> updateAttendance("dhuhr", col) },

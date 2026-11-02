@@ -87,6 +87,8 @@ fun FullScreenMenuScreen(
     val taskAlertTone by viewModel.taskAlertTone.collectAsState()
     val isDndDuringWorship by viewModel.isDndDuringWorship.collectAsState()
     val dndDurationMinutes by viewModel.dndDurationMinutes.collectAsState()
+    val isMorningAdhkarReminderEnabled by viewModel.isMorningAdhkarReminderEnabled.collectAsState()
+    val morningAdhkarReminderTime by viewModel.morningAdhkarReminderTime.collectAsState()
 
     // Active Tab in Settings (0 = المظهر وثيمات 2027, 1 = الملف الشخصي, 2 = النظام والصلوات)
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -1306,6 +1308,69 @@ fun FullScreenMenuScreen(
                                 checked = isDndDuringWorship,
                                 onCheckedChange = { viewModel.setDndDuringWorshipEnabled(it) }
                             )
+                        }
+
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+                        // تذكير أذكار الصباح
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (isEnglish) "Morning Adhkar Reminder" else "تذكير أذكار الصباح",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (isMorningAdhkarReminderEnabled) "مفعل ($morningAdhkarReminderTime)" else "معطل",
+                                    fontSize = 10.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = isMorningAdhkarReminderEnabled,
+                                onCheckedChange = { viewModel.setMorningAdhkarReminderEnabled(it) }
+                            )
+                        }
+
+                        if (isMorningAdhkarReminderEnabled) {
+                            var showTimePicker by remember { mutableStateOf(false) }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 2.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (isEnglish) "Reminder Time" else "وقت التذكير بالأذكار",
+                                    fontSize = 11.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                TextButton(onClick = { showTimePicker = !showTimePicker }) {
+                                    Text(morningAdhkarReminderTime, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+
+                                DropdownMenu(
+                                    expanded = showTimePicker,
+                                    onDismissRequest = { showTimePicker = false }
+                                ) {
+                                    val times = listOf("06:30 AM", "07:00 AM", "07:30 AM", "08:00 AM", "08:30 AM", "09:00 AM", "09:30 AM", "10:00 AM")
+                                    times.forEach { t ->
+                                        DropdownMenuItem(
+                                            text = { Text(t) },
+                                            onClick = {
+                                                viewModel.setMorningAdhkarReminderTime(t)
+                                                showTimePicker = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

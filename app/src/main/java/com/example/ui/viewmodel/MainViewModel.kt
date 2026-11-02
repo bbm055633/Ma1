@@ -166,6 +166,55 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _dndDurationMinutes.value = minutes
     }
 
+    private val prefs = application.getSharedPreferences("fahad_ai_prefs", android.content.Context.MODE_PRIVATE)
+
+    private val _isMorningAdhkarReminderEnabled = MutableStateFlow(
+        prefs.getBoolean("morning_adhkar_reminder_enabled", true)
+    )
+    val isMorningAdhkarReminderEnabled: StateFlow<Boolean> = _isMorningAdhkarReminderEnabled.asStateFlow()
+
+    private val _morningAdhkarReminderTime = MutableStateFlow(
+        prefs.getString("morning_adhkar_reminder_time", "08:00 AM") ?: "08:00 AM"
+    )
+    val morningAdhkarReminderTime: StateFlow<String> = _morningAdhkarReminderTime.asStateFlow()
+
+    fun setMorningAdhkarReminderEnabled(enabled: Boolean) {
+        _isMorningAdhkarReminderEnabled.value = enabled
+        prefs.edit().putBoolean("morning_adhkar_reminder_enabled", enabled).apply()
+        if (enabled) {
+            val (h, m) = parseReminderTime(_morningAdhkarReminderTime.value)
+            com.example.service.ZheenWorkManagerScheduler.scheduleMorningAdhkarReminder(getApplication(), h, m)
+        } else {
+            try {
+                androidx.work.WorkManager.getInstance(getApplication()).cancelUniqueWork("zheen_morning_adhkar_reminder")
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun setMorningAdhkarReminderTime(timeStr: String) {
+        _morningAdhkarReminderTime.value = timeStr
+        prefs.edit().putString("morning_adhkar_reminder_time", timeStr).apply()
+        if (_isMorningAdhkarReminderEnabled.value) {
+            val (h, m) = parseReminderTime(timeStr)
+            com.example.service.ZheenWorkManagerScheduler.scheduleMorningAdhkarReminder(getApplication(), h, m)
+        }
+    }
+
+    private fun parseReminderTime(timeStr: String): Pair<Int, Int> {
+        return try {
+            val parts = timeStr.trim().split(" ", ":")
+            var hour = parts[0].toInt()
+            val min = parts[1].toInt()
+            val isPm = timeStr.contains("PM", ignoreCase = true) || timeStr.contains("م", ignoreCase = true)
+            val isAm = timeStr.contains("AM", ignoreCase = true) || timeStr.contains("ص", ignoreCase = true)
+            if (isPm && hour < 12) hour += 12
+            if (isAm && hour == 12) hour = 0
+            Pair(hour, min)
+        } catch (e: Exception) {
+            Pair(8, 0)
+        }
+    }
+
     fun setUserName(name: String) {
         if (name.isNotBlank()) {
             _userName.value = name
@@ -445,6 +494,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _morningAdhkar = MutableStateFlow(AgentDataDefaults.MORNING_ADHKAR.map { it.copy() })
     val morningAdhkar: StateFlow<List<AdhkarItem>> = _morningAdhkar.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            selectedPrayerState.collect { prayer ->
+                val progressStr = prayer?.morningAdhkarProgress ?: ""
+                val countsMap = mutableMapOf<Int, Int>()
+                if (progressStr.isNotBlank()) {
+                    progressStr.split(",").forEach { pair ->
+                        val parts = pair.split(":")
+                        if (parts.size == 2) {
+                            val id = parts[0].toIntOrNull()
+                            val cnt = parts[1].toIntOrNull()
+                            if (id != null && cnt != null) {
+                                countsMap[id] = cnt
+                            }
+                        }
+                    }
+                }
+                _morningAdhkar.value = AgentDataDefaults.MORNING_ADHKAR.map { defaultItem ->
+                    val savedCount = countsMap[defaultItem.id] ?: 0
+                    defaultItem.copy(currentCount = savedCount)
+                }
+            }
+        }
+    }
 
     private val _eveningAdhkar = MutableStateFlow(AgentDataDefaults.EVENING_ADHKAR.map { it.copy() })
     val eveningAdhkar: StateFlow<List<AdhkarItem>> = _eveningAdhkar.asStateFlow()
@@ -1350,6 +1424,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 } else it
             }
             _morningAdhkar.value = list
+            persistMorningAdhkarProgress(list)
         } else {
             val list = _eveningAdhkar.value.map {
                 if (it.id == itemId && it.currentCount < it.targetCount) {
@@ -1362,9 +1437,36 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun resetAdhkar(isMorning: Boolean) {
         if (isMorning) {
-            _morningAdhkar.value = _morningAdhkar.value.map { it.copy(currentCount = 0) }
+            val list = _morningAdhkar.value.map { it.copy(currentCount = 0) }
+            _morningAdhkar.value = list
+            persistMorningAdhkarProgress(list)
         } else {
             _eveningAdhkar.value = _eveningAdhkar.value.map { it.copy(currentCount = 0) }
+        }
+    }
+
+    private fun persistMorningAdhkarProgress(list: List<AdhkarItem>) {
+        val currentDate = selectedDate.value
+        val progressStr = list.joinToString(",") { "${it.id}:${it.currentCount}" }
+        val isAllCompleted = list.all { it.currentCount >= it.targetCount } && list.isNotEmpty()
+
+        viewModelScope.launch {
+            val currentPrayers = prayerState.value
+            val todayStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+            val existing = if (currentDate == todayStr) {
+                _optimisticPrayers.value[currentDate] ?: currentPrayers.firstOrNull() ?: PrayerEntity(date = currentDate)
+            } else {
+                currentPrayers.firstOrNull() ?: PrayerEntity(date = currentDate)
+            }
+
+            val updated = existing.copy(
+                morningAdhkarProgress = progressStr,
+                morningAdhkar = isAllCompleted
+            )
+            if (currentDate == todayStr) {
+                _optimisticPrayers.value = _optimisticPrayers.value + (currentDate to updated)
+            }
+            saveOrUpdatePrayer(updated)
         }
     }
 }

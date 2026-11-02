@@ -231,11 +231,11 @@ fun ZheenApp(
                     var isCapsuleCollapsed by remember { mutableStateOf(false) }
 
                     val density = LocalDensity.current
-                    var measuredCapsuleHeightPx by remember { mutableIntStateOf(0) }
+                    var maxCapsuleHeightPx by remember { mutableIntStateOf(0) }
                     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-                    val topContentPadding = remember(measuredCapsuleHeightPx, density, statusBarTop) {
-                        if (measuredCapsuleHeightPx > 0) {
-                            with(density) { measuredCapsuleHeightPx.toDp() }
+                    val topContentPadding = remember(maxCapsuleHeightPx, density, statusBarTop) {
+                        if (maxCapsuleHeightPx > 0) {
+                            with(density) { maxCapsuleHeightPx.toDp() }
                         } else {
                             statusBarTop + 56.dp
                         }
@@ -247,9 +247,9 @@ fun ZheenApp(
                     val nestedScrollConnection = remember {
                         object : NestedScrollConnection {
                             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                                if (available.y < -10f) {
+                                if (available.y < -1f) {
                                     isCapsuleCollapsed = true
-                                } else if (available.y > 10f) {
+                                } else if (available.y > 1f) {
                                     isCapsuleCollapsed = false
                                 }
                                 return Offset.Zero
@@ -316,8 +316,8 @@ fun ZheenApp(
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
                                 .onGloballyPositioned { coordinates ->
-                                    if (coordinates.size.height > 0) {
-                                        measuredCapsuleHeightPx = coordinates.size.height
+                                    if (coordinates.size.height > 0 && !isCapsuleCollapsed) {
+                                        maxCapsuleHeightPx = coordinates.size.height
                                     }
                                 }
                         )

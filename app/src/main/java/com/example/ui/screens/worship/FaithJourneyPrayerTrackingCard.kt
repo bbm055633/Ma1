@@ -169,6 +169,7 @@ fun FaithJourneyPrayerTrackingCard(
     isMorningAdhkarDone: Boolean,
     onToggleMorningAdhkar: () -> Unit,
     onOpenMorningAdhkarSheet: () -> Unit,
+    morningAdhkarList: List<com.example.domain.models.AdhkarItem> = emptyList(),
     // Dhuhr
     dhuhrAttendance: AttendanceColumn,
     onDhuhrAttendanceChange: (AttendanceColumn) -> Unit,
@@ -283,17 +284,15 @@ fun FaithJourneyPrayerTrackingCard(
             HorizontalDivider(color = dividerColor, thickness = 0.8.dp)
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 6. Sunrise Card (Sunrise time + 3 capsules: Duha, Morning Adhkar, Fasting)
+            // 6. Sunrise Card (Sunrise time + 3 small circular buttons: Duha, Morning Adhkar with progress ring, Fasting)
             SunriseRow(
                 sunriseTime = prayerTimes.sunrise,
                 isDuhaDone = isDuhaDone,
                 onToggleDuha = onToggleDuha,
-                isMorningAdhkarDone = isMorningAdhkarDone,
-                onToggleMorningAdhkar = onToggleMorningAdhkar,
+                morningAdhkarList = morningAdhkarList,
                 onOpenMorningAdhkarSheet = onOpenMorningAdhkarSheet,
                 isFastingDone = isFastingDone,
-                onToggleFasting = onToggleFasting,
-                duhaStreak = streaks.duha
+                onToggleFasting = onToggleFasting
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -523,16 +522,20 @@ fun SunriseRow(
     sunriseTime: String,
     isDuhaDone: Boolean,
     onToggleDuha: () -> Unit,
-    isMorningAdhkarDone: Boolean,
-    onToggleMorningAdhkar: () -> Unit,
+    morningAdhkarList: List<com.example.domain.models.AdhkarItem> = emptyList(),
     onOpenMorningAdhkarSheet: () -> Unit,
     isFastingDone: Boolean,
-    onToggleFasting: () -> Unit,
-    duhaStreak: Int = 0
+    onToggleFasting: () -> Unit
 ) {
     val isLiveSky = com.example.ui.components.LocalStarryNightActive.current
     val cardAlpha = com.example.ui.theme.LocalCardTransparency.current
     val surfaceColor = MaterialTheme.colorScheme.surface.copy(alpha = if (isLiveSky) cardAlpha else 1.0f)
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    val totalAdhkar = morningAdhkarList.size
+    val completedAdhkar = morningAdhkarList.count { it.currentCount >= it.targetCount }
+    val adhkarFraction = if (totalAdhkar > 0) completedAdhkar.toFloat() / totalAdhkar else 0f
+    val isAdhkarAllCompleted = completedAdhkar == totalAdhkar && totalAdhkar > 0
 
     Surface(
         shape = RoundedCornerShape(12.dp),
@@ -540,201 +543,152 @@ fun SunriseRow(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // 1. Right Column (RTL): Sunrise Name & Time + Prohibition Subtitle
+            Column(
+                modifier = Modifier.width(96.dp),
+                horizontalAlignment = Alignment.Start
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("🌅", fontSize = 18.sp)
-                    Column {
-                        Text(
-                            text = "الشروق",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFDE68A)
-                        )
-                        Text(
-                            text = "انتهاء وقت النهي عن الصلاة",
-                            fontSize = 10.sp,
-                            color = FaithSubtleText
-                        )
-                    }
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFFFDE68A).copy(alpha = 0.2f)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = sunriseTime,
-                        fontSize = 12.sp,
+                        text = "الشروق",
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFD97706),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
+                Text(
+                    text = sunriseTime,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = FaithSubtleText
+                )
+                Text(
+                    text = "انتهاء وقت النهي",
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = FaithSubtleText.copy(alpha = 0.75f)
+                )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
-
-            FaithJourneyTriCapsulesRow(
-                isDuhaDone = isDuhaDone,
-                onToggleDuha = onToggleDuha,
-                isMorningAdhkarDone = isMorningAdhkarDone,
-                onToggleMorningAdhkar = onToggleMorningAdhkar,
-                onOpenMorningAdhkarSheet = onOpenMorningAdhkarSheet,
-                isFastingDone = isFastingDone,
-                onToggleFasting = onToggleFasting,
-                duhaStreak = duhaStreak
-            )
-        }
-    }
-}
-
-@Composable
-fun FaithJourneyTriCapsulesRow(
-    isDuhaDone: Boolean,
-    onToggleDuha: () -> Unit,
-    isMorningAdhkarDone: Boolean,
-    onToggleMorningAdhkar: () -> Unit,
-    onOpenMorningAdhkarSheet: () -> Unit,
-    isFastingDone: Boolean,
-    onToggleFasting: () -> Unit,
-    duhaStreak: Int = 0
-) {
-    val isLiveSky = com.example.ui.components.LocalStarryNightActive.current
-    val cardAlpha = com.example.ui.theme.LocalCardTransparency.current
-    val capsuleDefaultBg = MaterialTheme.colorScheme.surface.copy(alpha = if (isLiveSky) cardAlpha else 1.0f)
-    val isDarkMode = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (isLiveSky) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
-            .padding(6.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // 1. صلاة الضحى
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.TopCenter) {
-            Surface(
-                onClick = onToggleDuha,
-                shape = RoundedCornerShape(12.dp),
-                color = if (isDuhaDone) Color(0xFFFEF08A) else capsuleDefaultBg,
-                border = BorderStroke(1.dp, if (isDuhaDone) Color(0xFFEAB308) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text("🌅", fontSize = 12.sp)
-                        Text(
-                            text = "صلاة الضحى",
-                            fontSize = 10.5.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isDuhaDone) Color(0xFF78350F) else MaterialTheme.colorScheme.onSurface
-                        )
+            // 2. 3 Small Circular Buttons in the star circles section (34.dp diameter)
+            // Button A: صلاة الضحى (🌅)
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Surface(
+                        onClick = onToggleDuha,
+                        shape = CircleShape,
+                        color = if (isDuhaDone) ActiveSunGold.copy(alpha = 0.2f) else SlotNeutralBackground,
+                        border = BorderStroke(1.dp, if (isDuhaDone) ActiveSunGold else SoftSandOutline),
+                        modifier = Modifier.size(34.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            if (isDuhaDone) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = ActiveSunGold,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            } else {
+                                Text("🌅", fontSize = 14.sp)
+                            }
+                        }
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = if (isDuhaDone) "تمت ✓" else "سنة",
+                        text = "ضحى",
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Medium,
-                        color = if (isDuhaDone) Color(0xFF92400E) else FaithSubtleText
+                        color = if (isDuhaDone) ActiveSunGold else FaithSubtleText
                     )
                 }
             }
-            if (duhaStreak > 0) {
-                Box(modifier = Modifier.align(Alignment.TopCenter).offset(y = (-5.dp))) {
-                    StreakOrbitalStars(streakCount = duhaStreak)
-                }
-            }
-        }
 
-        // 2. أذكار الصباح
-        Surface(
-            onClick = {
-                onToggleMorningAdhkar()
-                onOpenMorningAdhkarSheet()
-            },
-            shape = RoundedCornerShape(12.dp),
-            color = if (isMorningAdhkarDone) Color(0xFFD1FAE5) else capsuleDefaultBg,
-            border = BorderStroke(1.dp, if (isMorningAdhkarDone) ActiveEmeraldMist else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
-            modifier = Modifier.weight(1f)
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text("📿", fontSize = 12.sp)
+            // Button B: أذكار الصباح (📿) with Circular Progress Ring
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(contentAlignment = Alignment.Center) {
+                        if (adhkarFraction > 0f && !isAdhkarAllCompleted) {
+                            CircularProgressIndicator(
+                                progress = { adhkarFraction },
+                                color = primaryColor,
+                                trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                strokeWidth = 2.5.dp,
+                                modifier = Modifier.size(38.dp)
+                            )
+                        }
+                        Surface(
+                            onClick = onOpenMorningAdhkarSheet,
+                            shape = CircleShape,
+                            color = if (isAdhkarAllCompleted) ActiveEmeraldMist.copy(alpha = 0.2f) else SlotNeutralBackground,
+                            border = BorderStroke(1.dp, if (isAdhkarAllCompleted) ActiveEmeraldMist else SoftSandOutline),
+                            modifier = Modifier.size(34.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                if (isAdhkarAllCompleted) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = ActiveEmeraldMist,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                } else {
+                                    Text("📿", fontSize = 14.sp)
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "أذكار الصباح",
-                        fontSize = 10.5.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isMorningAdhkarDone) Color(0xFF065F46) else MaterialTheme.colorScheme.onSurface
+                        text = "أذكار",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isAdhkarAllCompleted) ActiveEmeraldMist else FaithSubtleText
                     )
                 }
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = if (isMorningAdhkarDone) "أتممت ✓" else "الأذكار",
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = if (isMorningAdhkarDone) Color(0xFF047857) else FaithSubtleText
-                )
             }
-        }
 
-        // 3. صيام (Fasting) - Dark Blue theme
-        val fastingBg = if (isFastingDone) {
-            if (isDarkMode) Color(0xFF1E3A8A).copy(alpha = 0.45f) else Color(0xFFDBEAFE)
-        } else capsuleDefaultBg
-        val fastingBorder = if (isFastingDone) Color(0xFF3B82F6) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-        val fastingTitleColor = if (isFastingDone) {
-            if (isDarkMode) Color(0xFF93C5FD) else Color(0xFF1E3A8A)
-        } else MaterialTheme.colorScheme.onSurface
-        val fastingStatusColor = if (isFastingDone) {
-            if (isDarkMode) Color(0xFF60A5FA) else Color(0xFF1E40AF)
-        } else Color(0xFF94A3B8)
-
-        Surface(
-            onClick = onToggleFasting,
-            shape = RoundedCornerShape(12.dp),
-            color = fastingBg,
-            border = BorderStroke(1.dp, fastingBorder),
-            modifier = Modifier.weight(1f)
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text("🌙", fontSize = 12.sp)
+            // Button C: الصيام (🌙)
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Surface(
+                        onClick = onToggleFasting,
+                        shape = CircleShape,
+                        color = if (isFastingDone) Color(0xFF1E3A8A).copy(alpha = 0.2f) else SlotNeutralBackground,
+                        border = BorderStroke(1.dp, if (isFastingDone) Color(0xFF3B82F6) else SoftSandOutline),
+                        modifier = Modifier.size(34.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            if (isFastingDone) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = Color(0xFF3B82F6),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            } else {
+                                Text("🌙", fontSize = 14.sp)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "صيام",
-                        fontSize = 10.5.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = fastingTitleColor
+                        text = if (isFastingDone) "صائم ✓" else "صيام",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isFastingDone) Color(0xFF3B82F6) else FaithSubtleText
                     )
                 }
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = if (isFastingDone) "صائم ✓" else "ما صمت",
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = fastingStatusColor
-                )
             }
         }
     }

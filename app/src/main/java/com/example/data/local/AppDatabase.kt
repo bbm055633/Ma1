@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
         PrayerEntity::class,
         UserEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
