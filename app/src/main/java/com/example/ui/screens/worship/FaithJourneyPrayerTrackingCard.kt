@@ -52,7 +52,7 @@ val FaithGoldDark = Color(0xFF996408)
 enum class AttendanceColumn {
     NONE,
     IN_MOSQUE,  // في الجامع
-    AT_HOME,    // في البيت
+    AT_HOME,    // المنفرد
     LATE        // متأخر
 }
 
@@ -476,8 +476,8 @@ fun UnifiedPrayerTableHeaderRow(
             }
         }
 
-        // 5 Data Columns Headers (strictly aligned above row items: سنة قبلية, في المسجد, في البيت, متأخر, سنة بعدية)
-        val headers = listOf("سنة قبلية", "في المسجد", "في البيت", "متأخر", "سنة بعدية")
+        // 5 Data Columns Headers (strictly aligned above row items: سنة قبلية, في المسجد, المنفرد, متأخر, سنة بعدية)
+        val headers = listOf("سنة قبلية", "في المسجد", "المنفرد", "متأخر", "سنة بعدية")
         headers.forEach { title ->
             Box(
                 modifier = Modifier.weight(1f),
@@ -1203,7 +1203,7 @@ fun PrayerTrackingTableRow(
             )
         }
 
-        // Column 2: في البيت
+        // Column 2: المنفرد
         Box(
             modifier = Modifier.weight(1f),
             contentAlignment = Alignment.Center

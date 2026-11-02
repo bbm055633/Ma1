@@ -144,37 +144,11 @@ fun WorshipCommitmentBanner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // 1. Progress Bar Title (without "X من 5 صلوات" badge)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(if (isAllCompleted) "👑" else "🌟", fontSize = 14.sp)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = if (isAllCompleted) "تاج الالتزام مكتمل!" else "مستوى الالتزام بالصلوات",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        color = Color.White
-                    )
-                }
-
-                LinearProgressIndicator(
-                    progress = { progress },
-                    color = if (isAllCompleted) SaudiGold else Color(0xFF81C784),
-                    trackColor = Color.White.copy(alpha = 0.2f),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(3.dp))
-                )
-
-                // 2. The Box with Right Side (Dates) and Left Side (Prayer Name & Countdown)
+                // Main Box containing Right Side (Hijri & Gregorian dates at 14sp) and Left Side (Prayer name & enlarged countdown)
                 Surface(
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(16.dp),
                     color = Color.White.copy(alpha = 0.15f),
                     border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
                     modifier = Modifier.fillMaxWidth()
@@ -182,30 +156,30 @@ fun WorshipCommitmentBanner(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // الجهة اليمنى من الصندوق: التاريخ الهجري، ثم التاريخ الميلادي، فوق بعضهما
+                        // الجهة اليمنى من الصندوق: التاريخ الهجري والتاريخ الميلادي بنفس حجم الخط (14sp) فوق بعضهما
                         Column(
                             horizontalAlignment = Alignment.Start,
-                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
                             Text(
                                 text = "${hijriDate.day} ${hijriDate.monthNameAr} ${hijriDate.year} هـ",
-                                fontSize = 12.5.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
                             Text(
                                 text = gregorianDateText,
-                                fontSize = 10.5.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = Color.White.copy(alpha = 0.85f)
+                                color = Color.White.copy(alpha = 0.9f)
                             )
                         }
 
-                        // الجهة اليسرى من الصندوق: اسم الصلاة (أعلى) والوقت المتبقي (أسفل)
+                        // الجهة اليسرى من الصندوق: اسم الصلاة فوق الوقت المتبقي المُكبّر
                         Column(
                             horizontalAlignment = Alignment.End,
                             verticalArrangement = Arrangement.spacedBy(1.dp)
@@ -218,7 +192,7 @@ fun WorshipCommitmentBanner(
                             )
                             Text(
                                 text = countdownFormatted,
-                                fontSize = 28.sp,
+                                fontSize = 32.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = SaudiGold,
                                 letterSpacing = 1.sp
@@ -227,7 +201,7 @@ fun WorshipCommitmentBanner(
                     }
                 }
 
-                // 3. Bottom Motivational Badges: "السلسلة" & "السنن" only with equal weight
+                // Bottom Motivational Badges: "السلسلة" & "السنن" only with equal weight
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
