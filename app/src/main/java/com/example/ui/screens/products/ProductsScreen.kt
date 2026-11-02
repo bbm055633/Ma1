@@ -1,5 +1,11 @@
 package com.example.ui.screens.products
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -52,6 +58,7 @@ fun ProductsScreen(
     val userPrimaryColor by viewModel.userPrimaryColor.collectAsState()
     val isEnglish by viewModel.isEnglish.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    var isSearchExpanded by remember { mutableStateOf(false) }
 
     val filteredProducts = remember(searchQuery) {
         if (searchQuery.isBlank()) {
@@ -73,40 +80,137 @@ fun ProductsScreen(
                 .fillMaxSize()
                 .padding(top = 8.dp, start = 16.dp, end = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            // Search bar: Liquid Glass Pill Container
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = {
-                    Text(
-                        text = if (isEnglish) "Search for document, brand kit, feasibility study..." else "ابحث عن وثيقة، هوية تجارية، دراسة جدوى، فاتورة...",
-                        fontSize = 13.sp
-                    )
-                },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = userPrimaryColor) },
-                trailingIcon = {
-                    if (searchQuery.isNotBlank()) {
-                        IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Default.Clear, contentDescription = if (isEnglish) "Clear" else "مسح")
+            // Header Row: Screen Title with small search icon button beside it
+            AnimatedVisibility(
+                visible = !isSearchExpanded,
+                enter = fadeIn(animationSpec = tween(180)),
+                exit = fadeOut(animationSpec = tween(120))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (isEnglish) "Products" else "المنتجات",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = if (isEnglish) "Templates, feasibility studies & smart contracts" else "نماذج ودراسات وعقود ذكية جاهزة للتوليد",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Small search icon button beside title
+                    Surface(
+                        onClick = { isSearchExpanded = true },
+                        shape = CircleShape,
+                        color = userPrimaryColor.copy(alpha = 0.12f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, userPrimaryColor.copy(alpha = 0.25f)),
+                        modifier = Modifier
+                            .size(40.dp)
+                            .testTag("product_search_toggle_button")
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = if (isEnglish) "Search" else "بحث",
+                                tint = userPrimaryColor,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                     }
-                },
-                shape = RoundedCornerShape(28.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("product_search_input"),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    focusedBorderColor = userPrimaryColor,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                ),
-                singleLine = true
-            )
+                }
+            }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            // Expandable Search Bar with smooth transition, text field, and close button
+            AnimatedVisibility(
+                visible = isSearchExpanded,
+                enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
+                exit = fadeOut(animationSpec = tween(160)) + shrinkVertically(animationSpec = tween(160))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                            Text(
+                                text = if (isEnglish) "Search products, documents..." else "ابحث في المنتجات والوثائق...",
+                                fontSize = 13.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = null,
+                                tint = userPrimaryColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotBlank()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(
+                                        Icons.Default.Clear,
+                                        contentDescription = if (isEnglish) "Clear" else "مسح",
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                        },
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("product_search_input"),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedBorderColor = userPrimaryColor,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        ),
+                        singleLine = true
+                    )
+
+                    // Close button that collapses the search bar back to icon
+                    Surface(
+                        onClick = {
+                            isSearchExpanded = false
+                            searchQuery = ""
+                        },
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                        modifier = Modifier
+                            .size(42.dp)
+                            .testTag("product_search_close_button")
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = if (isEnglish) "Close search" else "إغلاق البحث",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Products Grid: One UI 9 White 24px Radius Cards
             LazyVerticalGrid(

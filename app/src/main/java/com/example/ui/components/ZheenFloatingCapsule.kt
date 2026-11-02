@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -95,13 +96,20 @@ fun ZheenFloatingCapsule(
     val primaryTextColor = if (isDarkMode || isStarry) Color.White else Color(0xFF1A1A1A)
     val accentColor = MaterialTheme.colorScheme.primary
 
-    val horizontalPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 28.dp else 16.dp,
+    val capsuleWidthFraction by animateFloatAsState(
+        targetValue = if (isCollapsed) 0.18f else 1.0f,
+        animationSpec = tween(250),
+        label = "capsule_width_fraction"
+    )
+
+    val capsuleHorizPadding by animateDpAsState(
+        targetValue = if (isCollapsed) 16.dp else 16.dp,
         animationSpec = tween(250),
         label = "capsule_horiz_padding"
     )
+
     val capsuleHeight by animateDpAsState(
-        targetValue = if (isCollapsed) 48.dp else 56.dp,
+        targetValue = if (isCollapsed) 44.dp else 52.dp,
         animationSpec = tween(250),
         label = "capsule_height"
     )
@@ -123,9 +131,9 @@ fun ZheenFloatingCapsule(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = horizontalPadding, vertical = 6.dp)
+            .padding(horizontal = capsuleHorizPadding, vertical = 4.dp)
             .testTag("zheen_floating_capsule_wrapper"),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.TopStart
     ) {
         Surface(
             shape = CircleShape,
@@ -133,7 +141,9 @@ fun ZheenFloatingCapsule(
             shadowElevation = if (isStarry) 2.dp else 6.dp,
             border = BorderStroke(1.dp, borderColor),
             modifier = Modifier
-                .fillMaxWidth()
+                .then(
+                    if (isCollapsed) Modifier.width(52.dp) else Modifier.fillMaxWidth()
+                )
                 .height(capsuleHeight)
                 .testTag("zheen_floating_capsule")
         ) {

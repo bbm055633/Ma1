@@ -228,22 +228,24 @@ fun ZheenApp(
                     containerColor = androidx.compose.ui.graphics.Color.Transparent,
                     contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { innerPadding ->
+                    var isCapsuleCollapsed by remember { mutableStateOf(false) }
+
                     val density = LocalDensity.current
                     var measuredCapsuleHeightPx by remember { mutableIntStateOf(0) }
                     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-                    val topContentPadding = remember(measuredCapsuleHeightPx, density, statusBarTop) {
-                        if (measuredCapsuleHeightPx > 0) {
+                    val topContentPadding = remember(measuredCapsuleHeightPx, density, statusBarTop, isCapsuleCollapsed) {
+                        if (isCapsuleCollapsed) {
+                            statusBarTop + 48.dp
+                        } else if (measuredCapsuleHeightPx > 0) {
                             with(density) { measuredCapsuleHeightPx.toDp() }
                         } else {
-                            statusBarTop + 80.dp
+                            statusBarTop + 72.dp
                         }
                     }
 
                     val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
                     val mainBottomBarHeight = 68.dp + navBarBottom
                     val bottomContentPadding = innerPadding.calculateBottomPadding().coerceAtLeast(mainBottomBarHeight)
-
-                    var isCapsuleCollapsed by remember { mutableStateOf(false) }
                     val nestedScrollConnection = remember {
                         object : NestedScrollConnection {
                             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {

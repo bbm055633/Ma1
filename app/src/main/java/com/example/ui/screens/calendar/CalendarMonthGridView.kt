@@ -26,6 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.CalendarEventEntity
+import com.example.data.local.NoteEntity
+import com.example.data.local.TaskEntity
 import com.example.domain.calendar.SaudiCalendarHelper
 import com.example.domain.calendar.SaudiDayLifestyleInfo
 import com.example.domain.prayer.HijriDateInfo
@@ -62,7 +64,12 @@ fun CalendarMonthGridView(
     modifier: Modifier = Modifier,
     viewMode: String = "MONTH",
     onViewModeChange: (String) -> Unit = {},
-    isEnglish: Boolean = false
+    isEnglish: Boolean = false,
+    tasks: List<TaskEntity> = emptyList(),
+    notes: List<NoteEntity> = emptyList(),
+    onToggleTaskComplete: (TaskEntity) -> Unit = {},
+    onDeleteTask: (TaskEntity) -> Unit = {},
+    onDeleteNote: (NoteEntity) -> Unit = {}
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
 
@@ -113,13 +120,47 @@ fun CalendarMonthGridView(
         }
     }
 
-    // Map of dayOfMonth -> count of events
-    val dayEventCountMap = remember(events, selectedMonth, selectedYear) {
+    // Filter tasks for the selected day
+    val selectedDayTasks = remember(tasks, selectedDay, selectedMonth, selectedYear) {
+        tasks.filter { task ->
+            val taskCal = Calendar.getInstance().apply { timeInMillis = task.dueDateMillis }
+            taskCal.get(Calendar.DAY_OF_MONTH) == selectedDay &&
+                    taskCal.get(Calendar.MONTH) == selectedMonth &&
+                    taskCal.get(Calendar.YEAR) == selectedYear
+        }
+    }
+
+    // Filter notes for the selected day
+    val selectedDayNotes = remember(notes, selectedDay, selectedMonth, selectedYear) {
+        notes.filter { note ->
+            val noteCal = Calendar.getInstance().apply { timeInMillis = note.timestamp }
+            noteCal.get(Calendar.DAY_OF_MONTH) == selectedDay &&
+                    noteCal.get(Calendar.MONTH) == selectedMonth &&
+                    noteCal.get(Calendar.YEAR) == selectedYear
+        }
+    }
+
+    // Map of dayOfMonth -> count of items (events + tasks + notes)
+    val dayEventCountMap = remember(events, tasks, notes, selectedMonth, selectedYear) {
         val map = mutableMapOf<Int, Int>()
         events.forEach { event ->
             val eventCal = Calendar.getInstance().apply { timeInMillis = event.startTimeMillis }
             if (eventCal.get(Calendar.MONTH) == selectedMonth && eventCal.get(Calendar.YEAR) == selectedYear) {
                 val d = eventCal.get(Calendar.DAY_OF_MONTH)
+                map[d] = (map[d] ?: 0) + 1
+            }
+        }
+        tasks.forEach { task ->
+            val taskCal = Calendar.getInstance().apply { timeInMillis = task.dueDateMillis }
+            if (taskCal.get(Calendar.MONTH) == selectedMonth && taskCal.get(Calendar.YEAR) == selectedYear) {
+                val d = taskCal.get(Calendar.DAY_OF_MONTH)
+                map[d] = (map[d] ?: 0) + 1
+            }
+        }
+        notes.forEach { note ->
+            val noteCal = Calendar.getInstance().apply { timeInMillis = note.timestamp }
+            if (noteCal.get(Calendar.MONTH) == selectedMonth && noteCal.get(Calendar.YEAR) == selectedYear) {
+                val d = noteCal.get(Calendar.DAY_OF_MONTH)
                 map[d] = (map[d] ?: 0) + 1
             }
         }
@@ -481,7 +522,7 @@ fun CalendarMonthGridView(
                                         }
 
                                         val cellBorder = when {
-                                            isSelected -> null
+                                            isSelected -> androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.95f))
                                             isToday -> androidx.compose.foundation.BorderStroke(1.5.dp, primaryColor)
                                             dayInfo.isSalaryDay -> androidx.compose.foundation.BorderStroke(1.2.dp, SaudiGold)
                                             dayInfo.nationalHoliday != null -> androidx.compose.foundation.BorderStroke(1.2.dp, primaryColor)
@@ -494,6 +535,7 @@ fun CalendarMonthGridView(
                                             shape = RoundedCornerShape(12.dp),
                                             color = cellBackground,
                                             border = cellBorder,
+                                            shadowElevation = if (isSelected) 6.dp else 0.dp,
                                             modifier = Modifier
                                                 .weight(1f)
                                                 .height(54.dp)
@@ -612,7 +654,8 @@ fun CalendarMonthGridView(
                                 },
                                 shape = RoundedCornerShape(14.dp),
                                 color = if (isSelected) primaryColor else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                                border = if (isToday && !isSelected) androidx.compose.foundation.BorderStroke(1.dp, primaryColor) else null,
+                                border = if (isSelected) androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.95f)) else if (isToday) androidx.compose.foundation.BorderStroke(1.dp, primaryColor) else null,
+                                shadowElevation = if (isSelected) 6.dp else 0.dp,
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(horizontal = 2.dp)
@@ -662,18 +705,44 @@ fun CalendarMonthGridView(
         }
     }
 
-        // 3. EVENTS FOR SELECTED DAY (المواعيد والمهام لليوم المحدد)
+        // 3. EVENTS, TASKS, AND NOTES FOR SELECTED DAY (مواعيد ومهام وملاحظات اليوم المحدد)
+        val totalDayItems = selectedDayEvents.size + selectedDayTasks.size + selectedDayNotes.size
         item {
-            Text(
-                text = if (isEnglish) "Scheduled Appointments & Tasks (${selectedDayEvents.size})" else "المواعيد والمهام المجدولة (${selectedDayEvents.size})",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (isEnglish) "Schedule for $selectedDay $monthName ($totalDayItems)" else "جدول $selectedDay $monthName ($totalDayItems)",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Button(
+                    onClick = onAddEventForDay,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    modifier = Modifier
+                        .height(34.dp)
+                        .testTag("day_add_button")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Text(if (isEnglish) "Add" else "إضافة", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
 
-        if (selectedDayEvents.isEmpty()) {
+        if (totalDayItems == 0) {
             item {
                 val isStarry = com.example.ui.components.LocalStarryNightActive.current
                 val cardAlpha = com.example.ui.theme.LocalCardTransparency.current
@@ -681,18 +750,18 @@ fun CalendarMonthGridView(
                 val borderColor = if (isStarry) Color.White.copy(alpha = 0.15f) else MaterialTheme.colorScheme.outline
 
                 Surface(
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(20.dp),
                     color = surfaceColor,
-                    shadowElevation = if (isStarry) 0.dp else 3.dp,
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        borderColor
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    shadowElevation = if (isStarry) 0.dp else 2.dp,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("day_empty_state")
                 ) {
                     Column(
-                        modifier = Modifier.padding(22.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Box(
                             modifier = Modifier
@@ -708,23 +777,216 @@ fun CalendarMonthGridView(
                                 modifier = Modifier.size(24.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = if (isEnglish) "No appointments" else "لا توجد مواعيد",
+                            text = if (isEnglish) "No appointments, tasks, or notes for this day" else "لا توجد مواعيد أو مهام أو ملاحظات لهذا اليوم",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = if (isEnglish) "Tap 'Add' to schedule an appointment, task, or note" else "اضغط على زر 'إضافة' لإدراج موعد أو مهمة أو ملاحظة",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
             }
         } else {
-            items(selectedDayEvents) { event ->
-                CalendarEventCard(
-                    event = event,
-                    timeFormat = timeFormat,
-                    onToggleComplete = { onToggleComplete(event) },
-                    onDelete = { onDeleteEvent(event) }
+            // Events for Selected Day
+            if (selectedDayEvents.isNotEmpty()) {
+                items(selectedDayEvents) { event ->
+                    CalendarEventCard(
+                        event = event,
+                        timeFormat = timeFormat,
+                        onToggleComplete = { onToggleComplete(event) },
+                        onDelete = { onDeleteEvent(event) }
+                    )
+                }
+            }
+
+            // Tasks for Selected Day
+            if (selectedDayTasks.isNotEmpty()) {
+                items(selectedDayTasks) { task ->
+                    CalendarTaskDayCard(
+                        task = task,
+                        primaryColor = primaryColor,
+                        isEnglish = isEnglish,
+                        onToggleComplete = { onToggleTaskComplete(task) },
+                        onDelete = { onDeleteTask(task) }
+                    )
+                }
+            }
+
+            // Notes for Selected Day
+            if (selectedDayNotes.isNotEmpty()) {
+                items(selectedDayNotes) { note ->
+                    CalendarNoteDayCard(
+                        note = note,
+                        primaryColor = primaryColor,
+                        isEnglish = isEnglish,
+                        onDelete = { onDeleteNote(note) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CalendarTaskDayCard(
+    task: TaskEntity,
+    primaryColor: Color,
+    isEnglish: Boolean = false,
+    onToggleComplete: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 1.dp,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("day_task_card_${task.id}")
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                IconButton(onClick = onToggleComplete, modifier = Modifier.size(24.dp)) {
+                    Icon(
+                        imageVector = if (task.isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                        contentDescription = null,
+                        tint = if (task.isCompleted) primaryColor else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = task.title,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (task.isCompleted) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface,
+                        textDecoration = if (task.isCompleted) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+                    )
+                    if (task.description.isNotBlank()) {
+                        Text(
+                            text = task.description,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = primaryColor.copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        text = if (isEnglish) "Task 📝" else "مهمة 📝",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
+                Icon(
+                    Icons.Default.DeleteOutline,
+                    contentDescription = if (isEnglish) "Delete" else "حذف",
+                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CalendarNoteDayCard(
+    note: NoteEntity,
+    primaryColor: Color,
+    isEnglish: Boolean = false,
+    onDelete: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 1.dp,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("day_note_card_${note.id}")
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Description,
+                    contentDescription = null,
+                    tint = primaryColor,
+                    modifier = Modifier.size(20.dp)
+                )
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = note.title,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (note.content.isNotBlank()) {
+                        Text(
+                            text = note.content,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = SaudiGoldDark.copy(alpha = 0.15f)
+                ) {
+                    Text(
+                        text = if (isEnglish) "Note 📋" else "ملاحظة 📋",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = SaudiGoldDark,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
+                Icon(
+                    Icons.Default.DeleteOutline,
+                    contentDescription = if (isEnglish) "Delete" else "حذف",
+                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }
