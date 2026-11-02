@@ -18,7 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.ZheenBottomBar
 import com.example.ui.components.ZheenDrawerContent
-import com.example.ui.components.ZheenTopBar
+import com.example.ui.components.ZheenFloatingCapsule
 import com.example.ui.screens.agents.AgentChatScreen
 import com.example.ui.screens.agents.AgentsScreen
 import com.example.ui.screens.calendar.CalendarScreen
@@ -237,36 +237,42 @@ fun ZheenApp(
                             }
                         }
 
-                        when (currentTab) {
-                            0 -> HomeScreen(
-                                viewModel = viewModel,
-                                prayerTimes = prayerTimes,
-                                hijriDate = hijriDate,
-                                onNavigate = { s -> viewModel.navigateTo(s) }
-                            )
-                            1 -> AgentsScreen(
-                                viewModel = viewModel,
-                                onNavigate = { s -> viewModel.navigateTo(s) }
-                            )
-                            2 -> ProductsScreen(
-                                viewModel = viewModel,
-                                onNavigate = { s -> viewModel.navigateTo(s) }
-                            )
-                            3 -> CalendarScreen(
-                                viewModel = viewModel,
-                                prayerTimes = prayerTimes,
-                                hijriDate = hijriDate
-                            )
-                            4 -> WorshipScreen(
-                                viewModel = viewModel,
-                                prayerTimes = prayerTimes,
-                                hijriDate = hijriDate,
-                                onNavigate = { s -> viewModel.navigateTo(s) }
-                            )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(top = 72.dp)
+                        ) {
+                            when (currentTab) {
+                                0 -> HomeScreen(
+                                    viewModel = viewModel,
+                                    prayerTimes = prayerTimes,
+                                    hijriDate = hijriDate,
+                                    onNavigate = { s -> viewModel.navigateTo(s) }
+                                )
+                                1 -> AgentsScreen(
+                                    viewModel = viewModel,
+                                    onNavigate = { s -> viewModel.navigateTo(s) }
+                                )
+                                2 -> ProductsScreen(
+                                    viewModel = viewModel,
+                                    onNavigate = { s -> viewModel.navigateTo(s) }
+                                )
+                                3 -> CalendarScreen(
+                                    viewModel = viewModel,
+                                    prayerTimes = prayerTimes,
+                                    hijriDate = hijriDate
+                                )
+                                4 -> WorshipScreen(
+                                    viewModel = viewModel,
+                                    prayerTimes = prayerTimes,
+                                    hijriDate = hijriDate,
+                                    onNavigate = { s -> viewModel.navigateTo(s) }
+                                )
+                            }
                         }
 
                         // Standalone ZheenFloatingCapsule floating over content
-                        com.example.ui.components.ZheenFloatingCapsule(
+                        ZheenFloatingCapsule(
                             screenTitle = currentTabTitle,
                             modifier = Modifier.align(Alignment.TopCenter)
                         )
