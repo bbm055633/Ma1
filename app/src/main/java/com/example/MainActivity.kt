@@ -57,6 +57,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.geometry.Offset
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -239,6 +243,20 @@ fun ZheenApp(
                     val mainBottomBarHeight = 68.dp + navBarBottom
                     val bottomContentPadding = innerPadding.calculateBottomPadding().coerceAtLeast(mainBottomBarHeight)
 
+                    var isCapsuleCollapsed by remember { mutableStateOf(false) }
+                    val nestedScrollConnection = remember {
+                        object : NestedScrollConnection {
+                            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                                if (available.y < -10f) {
+                                    isCapsuleCollapsed = true
+                                } else if (available.y > 10f) {
+                                    isCapsuleCollapsed = false
+                                }
+                                return Offset.Zero
+                            }
+                        }
+                    }
+
                     Box(
                         modifier = Modifier.fillMaxSize()
                     ) {
@@ -256,6 +274,7 @@ fun ZheenApp(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
+                                .nestedScroll(nestedScrollConnection)
                                 .padding(
                                     top = topContentPadding,
                                     bottom = bottomContentPadding
@@ -293,10 +312,11 @@ fun ZheenApp(
                         // Standalone ZheenFloatingCapsule floating over content
                         ZheenFloatingCapsule(
                             screenTitle = currentTabTitle,
+                            isCollapsed = isCapsuleCollapsed,
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
                                 .onGloballyPositioned { coordinates ->
-                                    if (coordinates.size.height > 0) {
+                                    if (coordinates.size.height > 0 && !isCapsuleCollapsed) {
                                         measuredCapsuleHeightPx = coordinates.size.height
                                     }
                                 }

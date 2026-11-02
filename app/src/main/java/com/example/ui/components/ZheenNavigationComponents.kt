@@ -1,6 +1,24 @@
 package com.example.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -179,19 +197,43 @@ fun ZheenBottomBar(
     onTabSelected: (Int) -> Unit,
     isEnglish: Boolean = false
 ) {
+    val context = LocalContext.current
+    val reduceMotion = remember(context) {
+        try {
+            val resolver = context.contentResolver
+            val transitionScale = android.provider.Settings.Global.getFloat(
+                resolver,
+                android.provider.Settings.Global.TRANSITION_ANIMATION_SCALE,
+                1.0f
+            )
+            val animatorScale = android.provider.Settings.Global.getFloat(
+                resolver,
+                android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+                1.0f
+            )
+            transitionScale == 0f || animatorScale == 0f
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     val isDarkMode = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     val isStarry = LocalStarryNightActive.current
     val cardAlpha = LocalCardTransparency.current
-    val containerBg = (if (isDarkMode) Color(0xFF1A1A1A) else Color(0xFFFFFFFF)).copy(alpha = if (isStarry) cardAlpha else 1.0f)
-    val borderStroke = androidx.compose.foundation.BorderStroke(1.dp, if (isStarry) Color.White.copy(alpha = 0.15f) else (if (isDarkMode) Color(0xFF2E2E2E) else Color(0x0F000000)))
+    val containerBg = (if (isDarkMode) Color(0xFF1E1E1E) else Color(0xFFFFFFFF)).copy(alpha = if (isStarry) cardAlpha else 0.98f)
+    val borderStroke = androidx.compose.foundation.BorderStroke(
+        1.dp,
+        if (isStarry) Color.White.copy(alpha = 0.15f) else (if (isDarkMode) Color(0xFF2E2E2E) else Color(0x0F000000))
+    )
     val activeColor = MaterialTheme.colorScheme.primary
     val inactiveColor = if (isDarkMode) Color(0xFFA0AEC0) else Color(0xFF64748B)
 
-    // Bottom Navigation with elegant active pill indicator
+    // Bottom Navigation Bar with rounded corners, soft shadow, and respectful motion animations
     Surface(
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
         color = containerBg,
-        shadowElevation = if (isStarry) 0.dp else 8.dp,
+        shadowElevation = if (isStarry) 0.dp else 10.dp,
+        tonalElevation = 2.dp,
         border = borderStroke,
         modifier = Modifier
             .fillMaxWidth()
@@ -202,7 +244,7 @@ fun ZheenBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(68.dp)
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+                .padding(horizontal = 8.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -217,34 +259,97 @@ fun ZheenBottomBar(
             items.forEachIndexed { index, item ->
                 val isSelected = selectedTab == index
 
+                val tabBgColor by animateColorAsState(
+                    targetValue = if (isSelected) {
+                        if (isDarkMode) activeColor.copy(alpha = 0.18f) else activeColor.copy(alpha = 0.12f)
+                    } else Color.Transparent,
+                    animationSpec = if (reduceMotion) snap() else tween(220),
+                    label = "tab_bg_$index"
+                )
+
+                val iconTint by animateColorAsState(
+                    targetValue = if (isSelected) activeColor else inactiveColor,
+                    animationSpec = if (reduceMotion) snap() else tween(180),
+                    label = "icon_tint_$index"
+                )
+
+                val iconScale by animateFloatAsState(
+                    targetValue = if (isSelected && !reduceMotion) 1.08f else 1.0f,
+                    animationSpec = if (reduceMotion) snap() else spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    ),
+                    label = "icon_scale_$index"
+                )
+
+                val iconOffsetY by animateFloatAsState(
+                    targetValue = if (isSelected && !reduceMotion) -1.5f else 0f,
+                    animationSpec = if (reduceMotion) snap() else spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    ),
+                    label = "icon_offset_$index"
+                )
+
                 Surface(
                     onClick = { onTabSelected(index) },
                     shape = RoundedCornerShape(20.dp),
-                    color = if (isSelected) (if (isDarkMode) activeColor.copy(alpha = 0.22f) else activeColor.copy(alpha = 0.12f)) else Color.Transparent,
+                    color = tabBgColor,
                     modifier = Modifier
-                        .height(56.dp)
+                        .height(54.dp)
                         .weight(1f)
                         .testTag("bottom_tab_$index")
                 ) {
                     Column(
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 4.dp, vertical = 4.dp)
+                            .animateContentSize(animationSpec = if (reduceMotion) snap() else tween(200)),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
                         Icon(
                             imageVector = if (isSelected) item.second else item.third,
                             contentDescription = item.first,
-                            tint = if (isSelected) activeColor else inactiveColor,
-                            modifier = Modifier.size(22.dp)
+                            tint = iconTint,
+                            modifier = Modifier
+                                .size(22.dp)
+                                .graphicsLayer {
+                                    scaleX = iconScale
+                                    scaleY = iconScale
+                                    translationY = iconOffsetY
+                                }
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = item.first,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            fontSize = 11.sp,
-                            fontFamily = AppTypography.body,
-                            color = if (isSelected) activeColor else inactiveColor
-                        )
+
+                        // تظهر الكلمة أسفل الأيقونة فقط عند اختيار التبويب مع حركة خفيفة وانتقال سلس، مع احترام تقليل الحركة
+                        AnimatedVisibility(
+                            visible = isSelected,
+                            enter = if (reduceMotion) {
+                                EnterTransition.None
+                            } else {
+                                fadeIn(animationSpec = tween(durationMillis = 200, delayMillis = 20)) +
+                                    expandVertically(animationSpec = tween(durationMillis = 200)) +
+                                    slideInVertically(animationSpec = tween(durationMillis = 200)) { it / 3 }
+                            },
+                            exit = if (reduceMotion) {
+                                ExitTransition.None
+                            } else {
+                                fadeOut(animationSpec = tween(durationMillis = 120)) +
+                                    shrinkVertically(animationSpec = tween(durationMillis = 120)) +
+                                    slideOutVertically(animationSpec = tween(durationMillis = 120)) { it / 3 }
+                            }
+                        ) {
+                            Text(
+                                text = item.first,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                                fontFamily = AppTypography.body,
+                                color = activeColor,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
                     }
                 }
             }

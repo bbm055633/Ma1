@@ -75,13 +75,13 @@ fun AgentsScreen(
                 .fillMaxSize()
                 .padding(top = 8.dp, start = 16.dp, end = 16.dp)
         ) {
-            // Agents list: One UI 9 White Cards
+            // Agents list: Compact and elegant Cards with tight spacing
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-                contentPadding = PaddingValues(top = 4.dp, bottom = 100.dp)
+                    .padding(top = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                contentPadding = PaddingValues(top = 4.dp, bottom = 110.dp)
             ) {
                 if (filteredAgents.isEmpty()) {
                     item {
@@ -204,11 +204,11 @@ fun OneUi9AgentCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .zheenCardStyle(RoundedCornerShape(24.dp), accentColor)
+            .zheenCardStyle(RoundedCornerShape(18.dp), accentColor)
             .clickable { onStartChat() }
             .testTag("agent_card_${agent.id}")
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -217,12 +217,12 @@ fun OneUi9AgentCard(
                 Row(
                     modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // 56x56 Circular Colorful Icon on Right
+                    // Compact 46x46 Circular Colorful Icon
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
+                            .size(46.dp)
                             .clip(CircleShape)
                             .background(generateGradientForColor(accentColor, agent.name.length)),
                         contentAlignment = Alignment.Center
@@ -231,20 +231,20 @@ fun OneUi9AgentCard(
                             text = if (isEnglish) agent.id.first().uppercase() else (agent.name.firstOrNull()?.toString() ?: "و"),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
+                            fontSize = 20.sp
                         )
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = agent.localizedName(isEnglish),
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = agent.localizedRole(isEnglish),
-                            fontSize = 13.sp,
+                            fontSize = 12.sp,
                             color = accentColor,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -252,30 +252,30 @@ fun OneUi9AgentCard(
                 }
 
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(8.dp),
                     color = accentColor.copy(alpha = 0.12f)
                 ) {
                     Text(
                         text = agent.localizedBadge(isEnglish),
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = accentColor,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = agent.localizedDescription(isEnglish),
-                fontSize = 14.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 20.sp
+                lineHeight = 18.sp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -283,23 +283,23 @@ fun OneUi9AgentCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(10.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.RecordVoiceOver,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(15.dp)
+                            modifier = Modifier.size(14.dp)
                         )
                         Text(
                             text = agent.localizedVoice(isEnglish),
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
                         )
@@ -308,20 +308,20 @@ fun OneUi9AgentCard(
 
                 Button(
                     onClick = onStartChat,
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = accentColor),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    modifier = Modifier.height(40.dp)
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                    modifier = Modifier.height(36.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        Text(if (isEnglish) "Start Chat" else "بدء المحادثة", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(if (isEnglish) "Start Chat" else "بدء المحادثة", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         Icon(
                             if (isEnglish) Icons.AutoMirrored.Filled.ArrowForward else Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null,
-                            modifier = Modifier.size(15.dp)
+                            modifier = Modifier.size(14.dp)
                         )
                     }
                 }
