@@ -242,7 +242,7 @@ fun ZheenApp(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(top = 72.dp)
+                                .padding(top = 104.dp)
                         ) {
                             when (currentTab) {
                                 0 -> HomeScreen(
