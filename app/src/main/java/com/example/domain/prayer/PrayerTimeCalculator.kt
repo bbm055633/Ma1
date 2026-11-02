@@ -299,6 +299,7 @@ object PrayerTimeCalculator {
     /**
      * Resolve the user's location in Saudi Arabia using device sensors or fallback to city.
      */
+    @android.annotation.SuppressLint("MissingPermission")
     fun resolveSaudiLocation(
         context: android.content.Context,
         fallbackCity: CityLocation = SAUDI_CITIES[0]

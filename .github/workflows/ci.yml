@@ -20,13 +20,16 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: Grant execute permission
         run: chmod +x gradlew || true
+      - name: Check Gradle Version
+        run: ./gradlew --version
       - name: Run Lint
-        run: ./gradlew lint --stacktrace || gradle lint --stacktrace
+        run: ./gradlew lint
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace || gradle assembleDebug --stacktrace
+        run: ./gradlew :app:assembleDebug
+      - name: Run Unit Tests
+        run: ./gradlew :app:testDebugUnitTest --rerun-tasks
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
-
