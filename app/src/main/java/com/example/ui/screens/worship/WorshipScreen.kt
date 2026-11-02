@@ -228,12 +228,9 @@ fun WorshipScreen(
                                     dayOffset = selectedDayIndex,
                                     prayerTimes = prayerTimes,
                                     onPreviousDay = {
-                                        val next = selectedDayIndex + 1
-                                        selectedDayIndex = next
-                                        val cal = java.util.Calendar.getInstance()
-                                        cal.add(java.util.Calendar.DAY_OF_YEAR, -next)
-                                        val newDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(cal.time)
+                                        val newDate = LocalDate.parse(selectedDate).minusDays(1).toString()
                                         viewModel.setSelectedDate(newDate)
+                                        selectedDayIndex++
                                     },
                                     onNextDay = {
                                         if (selectedDayIndex > 0) {
