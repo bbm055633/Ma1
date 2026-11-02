@@ -168,6 +168,10 @@ fun WorshipScreen(
         viewModel.saveOrUpdatePrayer(currentPrayerRecord.copy(qiyam = !currentPrayerRecord.qiyam))
     }
 
+    fun toggleFasting() {
+        viewModel.saveOrUpdatePrayer(currentPrayerRecord.copy(fasting = !currentPrayerRecord.fasting))
+    }
+
     val isLiveSky = LocalStarryNightActive.current
     val cardAlpha = LocalCardTransparency.current
     val bgModifier = if (isLiveSky) Modifier else Modifier.background(MaterialTheme.colorScheme.background)
@@ -297,21 +301,13 @@ fun WorshipScreen(
                                     isEveningAdhkarDone = currentPrayerRecord.eveningAdhkar,
                                     onToggleEveningAdhkar = { toggleEveningAdhkar() },
                                     onOpenEveningAdhkarSheet = { showEveningSheet = true },
+                                    isFastingDone = currentPrayerRecord.fasting,
+                                    onToggleFasting = { toggleFasting() },
                                     streaks = streaks
                                 )
                             }
 
-                            // 2.4. صلاة الضحى + أذكار الصباح
-                            item {
-                                SunriseDuhaMorningContainer(
-                                    sunriseTime = prayerTimes.sunrise,
-                                    isDuhaDone = currentPrayerRecord.duha,
-                                    onToggleDuha = { toggleDuha() },
-                                    completedAdhkarCount = morningAdhkar.count { it.currentCount >= it.targetCount },
-                                    totalAdhkarCount = morningAdhkar.size.coerceAtLeast(18),
-                                    onOpenMorningAdhkar = { showMorningSheet = true }
-                                )
-                            }
+
 
                             // 2.5. تحليل الالتزام بالعبادات والرسوم البيانية
                             item {

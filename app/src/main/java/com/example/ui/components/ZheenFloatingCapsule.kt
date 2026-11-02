@@ -223,42 +223,11 @@ fun ZheenFloatingCapsule(
                     }
                 }
 
-                // 3. زر تغيير اللغة الموحد وأيقونة الإشعارات (حواف دائرية ناعمة CircleShape بدون أي مربعات أو زوايا حادة)
+                // 3. أيقونة الإشعارات (حواف دائرية ناعمة CircleShape بدون أي مربعات أو زوايا حادة)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    if (userProfile.onToggleLanguage != null) {
-                        Surface(
-                            onClick = { userProfile.onToggleLanguage.invoke() },
-                            shape = CircleShape,
-                            color = if (isDarkMode) Color(0xFF282828) else Color(0xFFF1EFEA),
-                            modifier = Modifier
-                                .height(34.dp)
-                                .testTag("capsule_language_toggle_button")
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Translate,
-                                    contentDescription = if (userProfile.isEnglish) "Switch to Arabic" else "Switch to English",
-                                    tint = accentColor,
-                                    modifier = Modifier.size(13.dp)
-                                )
-                                Text(
-                                    text = if (userProfile.isEnglish) "عربي" else "EN",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = com.example.ui.theme.AppTypography.body,
-                                    color = accentColor
-                                )
-                            }
-                        }
-                    }
-
                     // زر الجرس - يفتح لوحة إشعارات منبثقة بتصميم دائري كامل
                     Box(
                         modifier = Modifier

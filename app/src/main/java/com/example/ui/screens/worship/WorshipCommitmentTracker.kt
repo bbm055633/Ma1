@@ -173,39 +173,20 @@ fun WorshipCommitmentBanner(
                         )
                     }
 
-                    // Right: Hijri Date & Day Navigator
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = "${hijriDate.day} ${hijriDate.monthNameAr} ${hijriDate.year} هـ",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.5.sp,
-                                color = Color.White
-                            )
-                            Text(
-                                text = if (dayOffset == 0) "اليوم (أم القرى)" else if (dayOffset == 1) "غداً" else if (dayOffset == -1) "أمس" else "يوم $dayOffset",
-                                fontSize = 10.5.sp,
-                                color = SaudiGold,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = Color.White.copy(alpha = 0.18f)
-                        ) {
-                            Row(modifier = Modifier.padding(2.dp)) {
-                                IconButton(onClick = onPreviousDay, modifier = Modifier.size(24.dp)) {
-                                    Icon(Icons.Default.ChevronRight, contentDescription = "السابق", tint = Color.White, modifier = Modifier.size(16.dp))
-                                }
-                                IconButton(onClick = onNextDay, modifier = Modifier.size(24.dp)) {
-                                    Icon(Icons.Default.ChevronLeft, contentDescription = "التالي", tint = Color.White, modifier = Modifier.size(16.dp))
-                                }
-                            }
-                        }
+                    // Right: Hijri Date only (without arrows)
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "${hijriDate.day} ${hijriDate.monthNameAr} ${hijriDate.year} هـ",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.5.sp,
+                            color = Color.White
+                        )
+                        Text(
+                            text = if (dayOffset == 0) "اليوم (أم القرى)" else if (dayOffset == 1) "غداً" else if (dayOffset == -1) "أمس" else "يوم $dayOffset",
+                            fontSize = 10.5.sp,
+                            color = SaudiGold,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 

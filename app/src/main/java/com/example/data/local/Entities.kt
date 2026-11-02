@@ -80,7 +80,8 @@ data class PrayerEntity(
     val duha: Boolean = false,
     val morningAdhkar: Boolean = false,
     val eveningAdhkar: Boolean = false,
-    val qiyam: Boolean = false
+    val qiyam: Boolean = false,
+    val fasting: Boolean = false
 )
 
 @Entity(tableName = "users")
