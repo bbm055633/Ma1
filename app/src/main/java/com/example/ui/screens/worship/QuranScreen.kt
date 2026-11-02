@@ -2,6 +2,7 @@ package com.example.ui.screens.worship
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -78,15 +80,15 @@ fun QuranScreen(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(Color(0xFF064E3B)) // Solid Emerald 900 (Unified with Adhkar)
+                .background(MaterialTheme.colorScheme.background)
                 .testTag("quran_screen_root")
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
-                    .padding(horizontal = 4.dp, vertical = 2.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // Compact Search Bar: "ابحث عن آية أو سورة"
                 OutlinedTextField(
@@ -95,25 +97,34 @@ fun QuranScreen(
                     placeholder = { 
                         Text(
                             "ابحث عن آية أو سورة", 
-                            color = Color.White.copy(alpha = 0.7f),
-                            fontFamily = quranFont,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontFamily = com.example.ui.theme.AppTypography.body,
                             fontSize = 13.sp
                         ) 
                     },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp)) },
-                    shape = RoundedCornerShape(20.dp),
+                    leadingIcon = { 
+                        Icon(
+                            Icons.Default.Search, 
+                            contentDescription = null, 
+                            tint = MaterialTheme.colorScheme.primary, 
+                            modifier = Modifier.size(20.dp)
+                        ) 
+                    },
+                    shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White.copy(alpha = 0.6f),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        cursorColor = MaterialTheme.colorScheme.primary
                     ),
                     singleLine = true,
-                    textStyle = LocalTextStyle.current.copy(fontFamily = quranFont, fontSize = 14.sp),
+                    textStyle = LocalTextStyle.current.copy(fontFamily = com.example.ui.theme.AppTypography.body, fontSize = 14.sp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
+                        .height(52.dp)
                         .testTag("quran_search_input")
                 )
 
@@ -125,14 +136,15 @@ fun QuranScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 16.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
                     items(surahsList) { surah ->
                         Surface(
                             shape = RoundedCornerShape(20.dp),
-                            color = Color.White.copy(alpha = 0.15f),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                            shadowElevation = 2.dp,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
@@ -144,50 +156,59 @@ fun QuranScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .size(32.dp)
+                                            .size(36.dp)
                                             .clip(CircleShape)
-                                            .background(Color.White),
+                                            .background(MaterialTheme.colorScheme.primaryContainer)
+                                            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), CircleShape),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = surah.number.toArabicDigits(),
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 12.sp,
-                                            color = Color(0xFF064E3B),
-                                            fontFamily = quranFont
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontFamily = com.example.ui.theme.AppTypography.body
                                         )
                                     }
-                                    Text(
-                                        text = surah.name,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White,
-                                        fontFamily = quranFont,
-                                        fontSize = 17.sp
-                                    )
+                                    Column {
+                                        Text(
+                                            text = surah.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontFamily = quranFont,
+                                            fontSize = 18.sp
+                                        )
+                                        Text(
+                                            text = surah.englishName,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontFamily = com.example.ui.theme.AppTypography.body
+                                        )
+                                    }
                                 }
 
                                 Surface(
-                                    shape = Shapes2027.Pill,
-                                    color = Color.White.copy(alpha = 0.25f)
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
                                 ) {
                                     Text(
                                         text = "ص ${surah.startPage.toArabicDigits()}",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White,
-                                        fontFamily = quranFont,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontFamily = com.example.ui.theme.AppTypography.body,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                     )
                                 }
                             }
@@ -225,70 +246,157 @@ private fun QuranReadingFullView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF064E3B))
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // White card fills entire screen
-            Surface(
-                shape = RoundedCornerShape(0.dp),
-                color = Color.White,
-                tonalElevation = 4.dp,
-                modifier = Modifier.fillMaxSize()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
             ) {
+                // Top Header Row with Back Button, Surah Title, and Controls
+                Surface(
+                    shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 3.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(
+                            onClick = onBack,
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "رجوع",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = surahInfo?.name ?: "سورة",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontFamily = quranFont,
+                                fontSize = 19.sp
+                            )
+                            Text(
+                                text = "صفحة ${pageData.number.toArabicDigits()}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontFamily = com.example.ui.theme.AppTypography.body
+                            )
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = {
+                                    isBookmarked = !isBookmarked
+                                    if (isBookmarked) onSaveBookmark(pageData.number)
+                                },
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkBorder,
+                                    contentDescription = "علامة مرجعية",
+                                    tint = if (isBookmarked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Reading Content: Harmonious Cards for Verses
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(horizontal = 14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(top = 12.dp, bottom = 40.dp)
                 ) {
+                    // Basmalah Card
                     item {
-                        Text(
-                            text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF064E3B),
-                            textAlign = TextAlign.Center,
-                            fontFamily = quranFont,
-                            fontSize = (fontSize + 4f).sp,
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                            shadowElevation = 1.dp,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
-                        )
+                        ) {
+                            Text(
+                                text = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                textAlign = TextAlign.Center,
+                                fontFamily = quranFont,
+                                fontSize = (fontSize + 2f).sp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp, horizontal = 16.dp)
+                            )
+                        }
                     }
 
+                    // Verses displayed in harmonious cards with small circular badge
                     items(pageData.ayahs) { ayah ->
-                        Text(
-                            text = "${ayah.text} ۝${ayah.numberInSurah.toArabicDigits()}",
-                            fontSize = fontSize.sp,
-                            lineHeight = (fontSize * 1.8f).sp,
-                            fontWeight = FontWeight.Normal,
-                            color = Color(0xFF1A1A1A),
-                            textAlign = TextAlign.Center,
-                            fontFamily = quranFont,
+                        Surface(
+                            shape = RoundedCornerShape(18.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)),
+                            shadowElevation = 1.dp,
                             modifier = Modifier.fillMaxWidth()
-                        )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Text(
+                                    text = ayah.text,
+                                    fontSize = fontSize.sp,
+                                    lineHeight = (fontSize * 1.8f).sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center,
+                                    fontFamily = quranFont,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                // Small circular badge following ayah text with clear font
+                                Box(
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = ayah.numberInSurah.toArabicDigits(),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontFamily = com.example.ui.theme.AppTypography.body
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-            }
-
-            // Settings Circle Button — top right corner floating
-            Box(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(top = 16.dp, end = 16.dp)
-                    .size(44.dp)
-                    .align(Alignment.TopEnd)
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.7f))
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Settings,
-                    contentDescription = "الإعدادات",
-                    tint = Color.White,
-                    modifier = Modifier.size(22.dp)
-                )
             }
         }
     }

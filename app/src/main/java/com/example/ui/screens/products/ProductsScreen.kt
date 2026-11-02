@@ -116,13 +116,51 @@ fun ProductsScreen(
                 contentPadding = PaddingValues(bottom = 12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(filteredProducts) { product ->
-                    OneUi9ProductCard(
-                        product = product,
-                        primaryColor = userPrimaryColor,
-                        isEnglish = isEnglish,
-                        onClick = { onNavigate(ActiveScreen.ProductGenerator(product.id)) }
-                    )
+                if (filteredProducts.isEmpty()) {
+                    item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(2) }) {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, userPrimaryColor.copy(alpha = 0.2f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 24.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    tint = userPrimaryColor,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = if (isEnglish) "No products matching '$searchQuery'" else "لا توجد وثائق مطابقة لـ '$searchQuery'",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = if (isEnglish) "Try searching for business plan, invoice, or legal kit" else "جرّب البحث عن دراسة جدوى، هوية تجارية، أو صياغة عقود",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    items(filteredProducts) { product ->
+                        OneUi9ProductCard(
+                            product = product,
+                            primaryColor = userPrimaryColor,
+                            isEnglish = isEnglish,
+                            onClick = { onNavigate(ActiveScreen.ProductGenerator(product.id)) }
+                        )
+                    }
                 }
             }
         }

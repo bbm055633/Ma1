@@ -96,9 +96,9 @@ fun AgentsScreen(
             // Liquid Glass Categories Filter Row at the bottom right above bottom nav bar
             Surface(
                 shape = RoundedCornerShape(24.dp),
-                color = Color.White.copy(alpha = 0.95f),
-                shadowElevation = 6.dp,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE8E4DC)),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                shadowElevation = 4.dp,
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
@@ -115,11 +115,11 @@ fun AgentsScreen(
                         Surface(
                             onClick = { selectedCategoryIndex = index },
                             shape = RoundedCornerShape(20.dp),
-                            color = if (isSelected) userPrimaryColor else Color(0xFFF9F6F0),
-                            shadowElevation = if (isSelected) 3.dp else 0.dp,
+                            color = if (isSelected) userPrimaryColor else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            shadowElevation = if (isSelected) 2.dp else 0.dp,
                             border = androidx.compose.foundation.BorderStroke(
                                 1.dp,
-                                if (isSelected) userPrimaryColor else Color(0xFFE8E4DC)
+                                if (isSelected) userPrimaryColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                             ),
                             modifier = Modifier.testTag("agent_category_$index")
                         ) {
@@ -127,7 +127,7 @@ fun AgentsScreen(
                                 text = cat,
                                 fontSize = 12.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) Color.White else Color(0xFF1C1B1A),
+                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
                             )
                         }
@@ -193,7 +193,7 @@ fun OneUi9AgentCard(
                             text = agent.localizedName(isEnglish),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1C1B1A)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = agent.localizedRole(isEnglish),
@@ -224,7 +224,7 @@ fun OneUi9AgentCard(
                 text = agent.localizedDescription(isEnglish),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
-                color = Color(0xFF6E685F),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 20.sp
             )
 
@@ -237,7 +237,7 @@ fun OneUi9AgentCard(
             ) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFFF9F6F0)
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -247,13 +247,13 @@ fun OneUi9AgentCard(
                         Icon(
                             imageVector = Icons.Default.RecordVoiceOver,
                             contentDescription = null,
-                            tint = Color(0xFF6E685F),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(15.dp)
                         )
                         Text(
                             text = agent.localizedVoice(isEnglish),
                             fontSize = 12.sp,
-                            color = Color(0xFF6E685F),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
                         )
                     }

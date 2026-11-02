@@ -156,8 +156,9 @@ fun ZheenFloatingCapsule(
                     ) { targetTitle ->
                         Text(
                             text = targetTitle,
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
+                            fontFamily = com.example.ui.theme.AppTypography.headings,
                             color = primaryTextColor,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
@@ -180,7 +181,7 @@ fun ZheenFloatingCapsule(
                             modifier = Modifier.testTag("capsule_language_toggle_button")
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
@@ -194,6 +195,7 @@ fun ZheenFloatingCapsule(
                                     text = if (userProfile.isEnglish) "عربي" else "EN",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
+                                    fontFamily = com.example.ui.theme.AppTypography.body,
                                     color = accentColor
                                 )
                             }

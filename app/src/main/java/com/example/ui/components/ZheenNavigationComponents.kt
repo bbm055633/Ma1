@@ -187,11 +187,11 @@ fun ZheenBottomBar(
     val activeColor = MaterialTheme.colorScheme.primary
     val inactiveColor = if (isDarkMode) Color(0xFFA0AEC0) else Color(0xFF64748B)
 
-    // Samsung One UI 8.5 Bottom Navigation (Well-proportioned, visually balanced, properly spaced)
+    // Bottom Navigation with elegant active pill indicator
     Surface(
-        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         color = containerBg,
-        shadowElevation = if (isStarry) 0.dp else 10.dp,
+        shadowElevation = if (isStarry) 0.dp else 8.dp,
         border = borderStroke,
         modifier = Modifier
             .fillMaxWidth()
@@ -201,17 +201,17 @@ fun ZheenBottomBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
-                .padding(horizontal = 8.dp, vertical = 6.dp),
+                .height(68.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             val items = listOf(
                 Triple(if (isEnglish) "Home" else "الرئيسية", Icons.Default.Home, Icons.Outlined.Home),
-                Triple(if (isEnglish) "Worship" else "العبادة", Icons.Default.Mosque, Icons.Outlined.Mosque),
-                Triple(if (isEnglish) "Tasks" else "المهام", Icons.Default.CheckCircle, Icons.Outlined.CheckCircle),
+                Triple(if (isEnglish) "Agents" else "الوكلاء", Icons.Default.AutoAwesome, Icons.Outlined.AutoAwesome),
+                Triple(if (isEnglish) "Products" else "المنتجات", Icons.Default.Inventory2, Icons.Outlined.Inventory2),
                 Triple(if (isEnglish) "Calendar" else "التقويم", Icons.Default.CalendarMonth, Icons.Outlined.CalendarMonth),
-                Triple(if (isEnglish) "Agents" else "الوكلاء", Icons.Default.AutoAwesome, Icons.Outlined.AutoAwesome)
+                Triple(if (isEnglish) "Worship" else "العبادة", Icons.Default.Mosque, Icons.Outlined.Mosque)
             )
 
             items.forEachIndexed { index, item ->
@@ -220,13 +220,14 @@ fun ZheenBottomBar(
                 Surface(
                     onClick = { onTabSelected(index) },
                     shape = RoundedCornerShape(20.dp),
-                    color = if (isSelected) (if (isDarkMode) activeColor.copy(alpha = 0.20f) else activeColor.copy(alpha = 0.12f)) else Color.Transparent,
+                    color = if (isSelected) (if (isDarkMode) activeColor.copy(alpha = 0.22f) else activeColor.copy(alpha = 0.12f)) else Color.Transparent,
                     modifier = Modifier
-                        .height(60.dp)
+                        .height(56.dp)
+                        .weight(1f)
                         .testTag("bottom_tab_$index")
                 ) {
                     Column(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -239,8 +240,9 @@ fun ZheenBottomBar(
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = item.first,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                             fontSize = 11.sp,
+                            fontFamily = AppTypography.body,
                             color = if (isSelected) activeColor else inactiveColor
                         )
                     }

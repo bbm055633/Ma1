@@ -588,6 +588,52 @@ fun HomeScreen(
                 }
 
                 // 5. FAHAD AI WELCOME BUBBLE & CHAT STREAM
+                if (messages.isEmpty()) {
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, userPrimaryColor.copy(alpha = 0.18f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(userPrimaryColor.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.AutoAwesome,
+                                        contentDescription = null,
+                                        tint = userPrimaryColor,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = if (isEnglish) "Welcome to Fahad AI" else "مرحبًا بك في فهد للذكاء الاصطناعي",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = if (isEnglish) "Type below or use the microphone to start your intelligent consultation." else "اكتب في الشريط أدناه أو استخدم الميكروفون لبدء استشارتك الذكية وتنظيم مهامك.",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 items(messages) { msg ->
                     OneUiChatBubble(
                         message = msg,
@@ -605,7 +651,7 @@ fun HomeScreen(
                             shape = RoundedCornerShape(20.dp),
                             color = MaterialTheme.colorScheme.surface,
                             shadowElevation = 2.dp,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, userPrimaryColor.copy(alpha = 0.25f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -619,9 +665,10 @@ fun HomeScreen(
                                     strokeWidth = 2.5.dp
                                 )
                                 Text(
-                                    text = if (isEnglish) "Loading..." else "جار التحميل...",
+                                    text = if (isEnglish) "Fahad AI is thinking and preparing your response..." else "فهد للذكاء الاصطناعي يفكر ويصيغ الإجابة بدقة...",
                                     fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
