@@ -1,6 +1,7 @@
 package com.example.ui.screens.worship
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -66,13 +67,11 @@ fun WorshipCommitmentBanner(
     val progress = completedCount / 5f
     val isAllCompleted = completedCount == 5
 
-    // Gregorian date string
+    // Gregorian date string with year
     val gregorianDateText = remember(dayOffset) {
         val cal = Calendar.getInstance()
         cal.add(Calendar.DAY_OF_YEAR, -dayOffset)
-        val dayName = SimpleDateFormat("EEEE", Locale("ar")).format(cal.time)
-        val dayNumMonth = SimpleDateFormat("d MMMM", Locale("ar")).format(cal.time)
-        "$dayName $dayNumMonth"
+        SimpleDateFormat("EEEE d MMMM yyyy", Locale("ar")).format(cal.time)
     }
 
     // Live countdown calculation
@@ -88,33 +87,26 @@ fun WorshipCommitmentBanner(
     }
 
     val isArrived = remainingSeconds <= 0
-    val isApproaching = remainingSeconds in 1..900 // <= 15 minutes
-
     val hours = remainingSeconds / 3600
     val mins = (remainingSeconds % 3600) / 60
     val secs = remainingSeconds % 60
-    val countdownFormatted = String.format(Locale.US, "%02d:%02d:%02d", hours, mins, secs)
-
-    val timerTextColor by animateColorAsState(
-        targetValue = when {
-            isArrived -> SaudiGold
-            isApproaching -> Color(0xFFFF9800) // Orange warning for < 15 mins
-            else -> Color.White
-        },
-        label = "timer_color"
-    )
+    val countdownFormatted = if (hours >= 1) {
+        String.format(Locale.US, "%d:%02d", hours, mins)
+    } else {
+        String.format(Locale.US, "%d:%02d", mins, secs)
+    }
 
     val primaryBg = MaterialTheme.colorScheme.primary
     val surfaceVariantBg = MaterialTheme.colorScheme.surfaceVariant
 
     Card(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
             if (isAllCompleted) SaudiGold.copy(alpha = 0.6f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier
             .fillMaxWidth()
             .testTag("worship_commitment_banner")
@@ -144,200 +136,102 @@ fun WorshipCommitmentBanner(
                     Offset(size.width * 0.35f, size.height * 0.88f)
                 )
                 stars.forEach { pos ->
-                    drawCircle(color = starColor, radius = 2.5.dp.toPx(), center = pos)
+                    drawCircle(color = starColor, radius = 2.dp.toPx(), center = pos)
                 }
             }
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // 1. Top Row: Hijri Date & Day Switcher (Right), Gregorian Date Badge (Left)
+                // 1. Progress Bar Title (without "X من 5 صلوات" badge)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Left: Gregorian Date Badge
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color.White.copy(alpha = 0.18f)
-                    ) {
-                        Text(
-                            text = gregorianDateText,
-                            fontSize = 11.5.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                        )
-                    }
-
-                    // Right: Hijri Date only (without arrows)
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "${hijriDate.day} ${hijriDate.monthNameAr} ${hijriDate.year} هـ",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.5.sp,
-                            color = Color.White
-                        )
-                        Text(
-                            text = if (dayOffset == 0) "اليوم (أم القرى)" else if (dayOffset == 1) "غداً" else if (dayOffset == -1) "أمس" else "يوم $dayOffset",
-                            fontSize = 10.5.sp,
-                            color = SaudiGold,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // 2. Hero Center Section: Next Prayer Name, Countdown Timer, Azan Time
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
+                    Text(if (isAllCompleted) "👑" else "🌟", fontSize = 14.sp)
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (isArrived) "حان وقت صلاة ${prayerTimes.nextPrayerName ?: "العصر"}" else "صلاة ${prayerTimes.nextPrayerName ?: "العصر"}",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    Text(
-                        text = "متبقي",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White.copy(alpha = 0.8f)
-                    )
-
-                    Text(
-                        text = countdownFormatted,
-                        fontSize = 32.sp,
+                        text = if (isAllCompleted) "تاج الالتزام مكتمل!" else "مستوى الالتزام بالصلوات",
                         fontWeight = FontWeight.Bold,
-                        color = timerTextColor,
-                        letterSpacing = 2.sp
-                    )
-
-                    Text(
-                        text = "موعد الأذان: ${prayerTimes.nextPrayerTime ?: "--:--"}",
-                        fontSize = 11.5.sp,
-                        color = Color.White.copy(alpha = 0.9f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // 3. Progress Bar: Completed Prayers out of 5
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(if (isAllCompleted) "👑" else "🌟", fontSize = 16.sp)
-                        Text(
-                            text = if (isAllCompleted) "تاج الالتزام مكتمل!" else "مستوى الالتزام بالصلوات",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            color = Color.White
-                        )
-                    }
-
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
+                        fontSize = 12.sp,
                         color = Color.White
-                    ) {
-                        Text(
-                            text = "$completedCount من 5 صلوات",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.5.sp,
-                            color = Color(0xFF1E3A2F), // Dark rich text for white badge
-                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 3.dp)
-                        )
-                    }
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 LinearProgressIndicator(
                     progress = { progress },
-                    color = if (isAllCompleted) SaudiGold else Color(0xFF81C784), // Light green for high contrast
+                    color = if (isAllCompleted) SaudiGold else Color(0xFF81C784),
                     trackColor = Color.White.copy(alpha = 0.2f),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp))
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp))
                 )
 
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // 4. The 5 Prayers Attendance Track
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                // 2. The Box with Right Side (Dates) and Left Side (Prayer Name & Countdown)
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color.White.copy(alpha = 0.15f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    statuses.forEach { (name, attendance, iconEmoji) ->
-                        val isDone = attendance != PrayerAttendance.NONE
-                        val isJamaah = attendance == PrayerAttendance.JAMAAH
-                        val isLate = attendance == PrayerAttendance.LATE
-
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // الجهة اليمنى من الصندوق: التاريخ الهجري، ثم التاريخ الميلادي، فوق بعضهما
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        when {
-                                            isJamaah -> EmeraldPrimary
-                                            isDone && !isLate -> Color(0xFF0288D1)
-                                            isLate -> Color(0xFFFFA000)
-                                            else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                                        }
-                                    )
-                                    .border(
-                                        width = if (isDone) 1.5.dp else 1.dp,
-                                        color = if (isDone) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (isDone) {
-                                    Text(
-                                        text = if (isJamaah) "🕌" else if (isLate) "⏰" else "✓",
-                                        fontSize = 18.sp,
-                                        color = Color.White
-                                    )
-                                } else {
-                                    Text(iconEmoji, fontSize = 16.sp)
-                                }
-                            }
-
                             Text(
-                                text = name,
-                                fontSize = 11.sp,
-                                fontWeight = if (isDone) FontWeight.Bold else FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
+                                text = "${hijriDate.day} ${hijriDate.monthNameAr} ${hijriDate.year} هـ",
+                                fontSize = 12.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = gregorianDateText,
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
+
+                        // الجهة اليسرى من الصندوق: اسم الصلاة (أعلى) والوقت المتبقي (أسفل)
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.spacedBy(1.dp)
+                        ) {
+                            Text(
+                                text = if (isArrived) "صلاة ${prayerTimes.nextPrayerName ?: "العصر"}" else "صلاة ${prayerTimes.nextPrayerName ?: "العصر"}",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = countdownFormatted,
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SaudiGold,
+                                letterSpacing = 1.sp
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // 5. Bottom Motivational Badges (Streak, Jamaah, Sunnah)
+                // 3. Bottom Motivational Badges: "السلسلة" & "السنن" only with equal weight
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Streak Badge
                     CommitmentMiniBadge(
                         icon = "🔥",
                         title = "السلسلة",
@@ -346,16 +240,6 @@ fun WorshipCommitmentBanner(
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Jamaah Badge
-                    CommitmentMiniBadge(
-                        icon = "🕌",
-                        title = "الجماعة",
-                        value = "$jamaahCount صلوات",
-                        highlightColor = EmeraldPrimary,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    // Sunnah Badge
                     CommitmentMiniBadge(
                         icon = "✨",
                         title = "السنن",

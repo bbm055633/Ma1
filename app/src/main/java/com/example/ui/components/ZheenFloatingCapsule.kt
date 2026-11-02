@@ -1,47 +1,34 @@
 package com.example.ui.components
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import com.example.ui.theme.LocalCardTransparency
-
-import androidx.compose.material.icons.filled.Translate
 
 /**
  * بيانات المستخدم والإشعارات المتاحة عبر CompositionLocal
@@ -59,13 +46,8 @@ data class UserProfileData(
 val LocalUserProfile = staticCompositionLocalOf { UserProfileData() }
 
 /**
- * ZheenFloatingCapsule - كبسولة سفلية/علوية عائمة ومستقلة
- * تُستخدم عبر جميع شاشات التطبيق كبديل أنيق وعصري للـ TopAppBar التقليدي
- *
- * @param screenTitle عنوان الشاشة الحالية والذي يتغير بسلاسة عند التنقل
- * @param modifier محددات التنسيق والموقع
+ * ZheenFloatingCapsule - عناصر عائمة في الزاوية العليا اليمنى (صورة المستخدم وزر الجرس بجانب بعضهما)
  */
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ZheenFloatingCapsule(
     screenTitle: String,
@@ -74,52 +56,16 @@ fun ZheenFloatingCapsule(
 ) {
     val userProfile = LocalUserProfile.current
     val isDarkMode = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val isStarry = LocalStarryNightActive.current
-    val cardAlpha = LocalCardTransparency.current
     var showNotificationPopup by remember { mutableStateOf(false) }
 
-    // ألوان الكبسولة العائمة المستمدة من نظام الألوان الحديث
-    val containerBg = if (isStarry) {
-        Color(0xFF121212).copy(alpha = cardAlpha.coerceAtLeast(0.75f))
-    } else if (isDarkMode) {
-        Color(0xFF1E1E1E).copy(alpha = 0.94f)
-    } else {
-        Color(0xFFFFFFFF).copy(alpha = 0.96f)
-    }
-
-    val borderColor = if (isStarry) {
-        Color.White.copy(alpha = 0.20f)
-    } else if (isDarkMode) {
-        Color(0xFF333333)
-    } else {
-        Color(0x12000000)
-    }
-
-    val primaryTextColor = if (isDarkMode || isStarry) Color.White else Color(0xFF1A1A1A)
+    val primaryTextColor = if (isDarkMode) Color.White else Color(0xFF1A1A1A)
     val accentColor = MaterialTheme.colorScheme.primary
 
-    val animatedBgColor by animateColorAsState(
-        targetValue = if (isCollapsed) Color.Transparent else containerBg,
+    // تلاشي صورة المستخدم تدريجياً عند التمرير (isCollapsed)
+    val avatarAlpha by animateFloatAsState(
+        targetValue = if (isCollapsed) 0f else 1f,
         animationSpec = tween(250),
-        label = "capsule_bg_color"
-    )
-
-    val animatedBorderColor by animateColorAsState(
-        targetValue = if (isCollapsed) Color.Transparent else borderColor,
-        animationSpec = tween(250),
-        label = "capsule_border_color"
-    )
-
-    val animatedElevation by animateDpAsState(
-        targetValue = if (isCollapsed) 0.dp else (if (isStarry) 2.dp else 6.dp),
-        animationSpec = tween(250),
-        label = "capsule_elevation"
-    )
-
-    val capsuleHeight by animateDpAsState(
-        targetValue = if (isCollapsed) 44.dp else 52.dp,
-        animationSpec = tween(250),
-        label = "capsule_height"
+        label = "avatar_alpha"
     )
 
     if (showNotificationPopup) {
@@ -135,184 +81,109 @@ fun ZheenFloatingCapsule(
         )
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            .testTag("zheen_floating_capsule_wrapper"),
-        contentAlignment = if (isCollapsed) Alignment.TopEnd else Alignment.TopCenter
+            .testTag("zheen_floating_capsule_wrapper")
     ) {
-        Surface(
-            shape = CircleShape,
-            color = animatedBgColor,
-            shadowElevation = animatedElevation,
-            border = BorderStroke(1.dp, animatedBorderColor),
+        val maxWidth = maxWidth
+        val avatarSize = 44.dp
+        val bellSize = 36.dp
+        val spacing = 8.dp
+
+        val targetBellX = if (isCollapsed) 0.dp else (maxWidth - bellSize)
+        val targetBellY = if (isCollapsed) (avatarSize + spacing) else 0.dp
+
+        val bellOffsetX by animateDpAsState(
+            targetValue = targetBellX,
+            animationSpec = tween(300),
+            label = "bell_x"
+        )
+        val bellOffsetY by animateDpAsState(
+            targetValue = targetBellY,
+            animationSpec = tween(300),
+            label = "bell_y"
+        )
+
+        val containerHeight = if (isCollapsed) (avatarSize + spacing + bellSize) else maxOf(avatarSize, bellSize)
+
+        Box(
             modifier = Modifier
-                .then(
-                    if (isCollapsed) {
-                        Modifier.size(capsuleHeight).clickable { showNotificationPopup = true }
-                    } else {
-                        Modifier.fillMaxWidth().height(capsuleHeight)
-                    }
-                )
-                .animateContentSize(animationSpec = tween(250))
+                .fillMaxWidth()
+                .height(containerHeight)
+                .zIndex(10f)
                 .testTag("zheen_floating_capsule")
         ) {
-            if (isCollapsed) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .testTag("capsule_collapsed_circle"),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Notifications,
-                        contentDescription = "الملف الشخصي",
-                        tint = primaryTextColor.copy(alpha = 0.9f),
-                        modifier = Modifier.size(20.dp)
+            // 1. صورة المستخدم في الجهة اليسرى من الأعلى
+            Box(
+                modifier = Modifier
+                    .offset(x = 0.dp, y = 0.dp)
+                    .size(avatarSize)
+                    .alpha(avatarAlpha)
+                    .shadow(4.dp, CircleShape)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                    .border(BorderStroke(1.5.dp, Color.White), CircleShape)
+                    .clickable(enabled = avatarAlpha > 0.1f) { userProfile.onAvatarClick?.invoke() }
+                    .testTag("capsule_user_avatar"),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!userProfile.userProfileImageUri.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = userProfile.userProfileImageUri,
+                        contentDescription = "الصورة الشخصية",
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                    if (userProfile.notificationCount > 0) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(x = 2.dp, y = (-2).dp)
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFE63946)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = userProfile.notificationCount.toString(),
-                                fontSize = 7.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-                    }
+                } else {
+                    val initialLetter = userProfile.userName.trim().take(1).ifEmpty { "ف" }
+                    Text(
+                        text = initialLetter,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor
+                    )
                 }
-            } else {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // 1. الصورة الشخصية للمستخدم
+            }
+
+            // 2. زر الجرس في الجهة اليمنى بالوضع الكامل، وينتقل إلى أسفل الصورة في العمود الأيسر عند التقلص
+            Box(
+                modifier = Modifier
+                    .offset(x = bellOffsetX, y = bellOffsetY)
+                    .size(bellSize)
+                    .shadow(4.dp, CircleShape)
+                    .clip(CircleShape)
+                    .background(if (isDarkMode) Color(0xFF282828) else Color(0xFFF1EFEA))
+                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)), CircleShape)
+                    .clickable { showNotificationPopup = true }
+                    .testTag("capsule_notification_button"),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Notifications,
+                    contentDescription = "الإشعارات",
+                    tint = primaryTextColor.copy(alpha = 0.95f),
+                    modifier = Modifier.size(20.dp)
+                )
+
+                if (userProfile.notificationCount > 0) {
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
+                            .align(Alignment.TopEnd)
+                            .offset(x = 2.dp, y = (-2).dp)
+                            .size(14.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-                            .clickable { userProfile.onAvatarClick?.invoke() }
-                            .testTag("capsule_user_avatar"),
+                            .background(Color(0xFFE63946)),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (!userProfile.userProfileImageUri.isNullOrEmpty()) {
-                            AsyncImage(
-                                model = userProfile.userProfileImageUri,
-                                contentDescription = "الصورة الشخصية",
-                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        } else {
-                            val initialLetter = userProfile.userName.trim().take(1).ifEmpty { "ف" }
-                            Text(
-                                text = initialLetter,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = accentColor
-                            )
-                        }
-                    }
-
-                    // 2. عنوان الشاشة في الوسط
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp)
-                    ) {
-                        AnimatedContent(
-                            targetState = screenTitle,
-                            transitionSpec = {
-                                (fadeIn() + scaleIn(initialScale = 0.92f)).togetherWith(fadeOut() + scaleOut(targetScale = 0.92f))
-                            },
-                            label = "screen_title_animation"
-                        ) { targetTitle ->
-                            Text(
-                                text = targetTitle,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = com.example.ui.theme.AppTypography.headings,
-                                color = primaryTextColor,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-
-                    // 3. أزرار الجهة اليمنى (زر اللغة وزر الإشعارات)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        if (userProfile.onToggleLanguage != null) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(if (isDarkMode) Color(0xFF282828) else Color(0xFFF1EFEA))
-                                    .clickable { userProfile.onToggleLanguage?.invoke() }
-                                    .testTag("capsule_language_button"),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Translate,
-                                    contentDescription = "تغيير اللغة",
-                                    tint = primaryTextColor.copy(alpha = 0.85f),
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(if (isDarkMode) Color(0xFF282828) else Color(0xFFF1EFEA))
-                                .clickable { showNotificationPopup = true }
-                                .testTag("capsule_notification_button"),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Notifications,
-                                contentDescription = "الإشعارات",
-                                tint = primaryTextColor.copy(alpha = 0.85f),
-                                modifier = Modifier.size(18.dp)
-                            )
-
-                            if (userProfile.notificationCount > 0) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .offset(x = 1.dp, y = (-1).dp)
-                                        .size(14.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFFE63946)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = if (userProfile.notificationCount > 9) "9+" else userProfile.notificationCount.toString(),
-                                        fontSize = 8.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                }
-                            }
-                        }
+                        Text(
+                            text = if (userProfile.notificationCount > 9) "9+" else userProfile.notificationCount.toString(),
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     }
                 }
             }
@@ -402,7 +273,6 @@ fun NotificationSimplePopup(
 
                 HorizontalDivider(color = if (isDarkMode) Color(0xFF2E2E2E) else Color(0xFFF0EFEA))
 
-                // Notifications items
                 val notifs = remember(isEnglish) {
                     listOf(
                         Triple(
@@ -455,7 +325,6 @@ fun NotificationSimplePopup(
                     }
                 }
 
-                // Action button to full menu / control center
                 Button(
                     onClick = onOpenSettings,
                     shape = RoundedCornerShape(14.dp),

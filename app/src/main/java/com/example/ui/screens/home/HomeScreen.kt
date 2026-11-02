@@ -984,7 +984,11 @@ fun NextPrayerHeroCard(
     val hours = remainingSeconds / 3600
     val minutes = (remainingSeconds % 3600) / 60
     val seconds = remainingSeconds % 60
-    val countdownFormatted = String.format(java.util.Locale.US, "%02d:%02d:%02d", hours, minutes, seconds)
+    val countdownFormatted = if (hours >= 1) {
+        String.format(java.util.Locale.US, "%d:%02d", hours, minutes)
+    } else {
+        String.format(java.util.Locale.US, "%d:%02d", minutes, seconds)
+    }
 
     // Glowing progress pulse animation
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")

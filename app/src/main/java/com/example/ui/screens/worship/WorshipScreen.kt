@@ -204,7 +204,7 @@ fun WorshipScreen(
                                 .fillMaxSize()
                                 .testTag("worship_prayers_tab_content"),
                             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             // 2.1. بطاقة العبادات والالتزام الموحدة (العد التنازلي + التاريخ + تتبع الصلوات)
                             item {

@@ -230,16 +230,8 @@ fun ZheenApp(
                 ) { innerPadding ->
                     var isCapsuleCollapsed by remember { mutableStateOf(false) }
 
-                    val density = LocalDensity.current
-                    var maxCapsuleHeightPx by remember { mutableIntStateOf(0) }
                     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-                    val topContentPadding = remember(maxCapsuleHeightPx, density, statusBarTop) {
-                        if (maxCapsuleHeightPx > 0) {
-                            with(density) { maxCapsuleHeightPx.toDp() }
-                        } else {
-                            statusBarTop + 56.dp
-                        }
-                    }
+                    val topContentPadding = statusBarTop + 16.dp
 
                     val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
                     val mainBottomBarHeight = 68.dp + navBarBottom
@@ -315,11 +307,6 @@ fun ZheenApp(
                             isCollapsed = isCapsuleCollapsed,
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
-                                .onGloballyPositioned { coordinates ->
-                                    if (coordinates.size.height > 0 && !isCapsuleCollapsed) {
-                                        maxCapsuleHeightPx = coordinates.size.height
-                                    }
-                                }
                         )
                     }
                 }
