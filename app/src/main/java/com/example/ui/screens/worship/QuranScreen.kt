@@ -160,7 +160,7 @@ fun QuranScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            text = "${surah.number}",
+                                            text = surah.number.toArabicDigits(),
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 12.sp,
                                             color = Color(0xFF064E3B),
@@ -182,7 +182,7 @@ fun QuranScreen(
                                     color = Color.White.copy(alpha = 0.25f)
                                 ) {
                                     Text(
-                                        text = "ص ${surah.startPage}",
+                                        text = "ص ${surah.startPage.toArabicDigits()}",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White,
@@ -258,7 +258,7 @@ private fun QuranReadingFullView(
 
                     items(pageData.ayahs) { ayah ->
                         Text(
-                            text = "${ayah.text} ﴿${ayah.numberInSurah}﴾",
+                            text = "${ayah.text} ۝${ayah.numberInSurah.toArabicDigits()}",
                             fontSize = fontSize.sp,
                             lineHeight = (fontSize * 1.8f).sp,
                             fontWeight = FontWeight.Normal,
@@ -421,3 +421,9 @@ private fun getSurahsList(): List<SurahMeta> {
         SurahMeta(114, "سُورَةُ النَّاسِ", "An-Naas", 6, "مكية", 604)
     )
 }
+
+private fun Int.toArabicDigits(): String {
+    val arabicDigits = charArrayOf('٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩')
+    return this.toString().map { if (it in '0'..'9') arabicDigits[it - '0'] else it }.joinToString("")
+}
+
