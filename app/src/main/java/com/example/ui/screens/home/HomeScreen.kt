@@ -89,8 +89,14 @@ fun HomeScreen(
                 contentPadding = PaddingValues(top = 10.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // 1. LOCATION & DATE CARD AT THE TOP
+                // 1. DATE, LOCATION & GREETING BAR
                 item {
+                    val cityDisplayName = if (isEnglish) "${selectedCity.nameEn}, Saudi Arabia" else "${selectedCity.nameAr}، المملكة العربية السعودية"
+                    val gregorianDateStr = remember {
+                        val sdf = java.text.SimpleDateFormat(if (isEnglish) "EEEE, d MMMM yyyy" else "EEEE، d MMMM yyyy", java.util.Locale.forLanguageTag(if (isEnglish) "en" else "ar"))
+                        sdf.format(java.util.Date())
+                    }
+
                     ZheenCard(
                         modifier = Modifier.fillMaxWidth(),
                         primaryColor = userPrimaryColor
@@ -98,72 +104,347 @@ fun HomeScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(18.dp),
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(52.dp)
-                                    .clip(CircleShape)
-                                    .background(generateGradientForColor(userPrimaryColor, 0)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                            Column {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.LocationOn,
+                                        contentDescription = null,
+                                        tint = userPrimaryColor,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = cityDisplayName,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "${hijriDate.day} ${hijriDate.monthNameAr} ${hijriDate.year} هـ  •  $gregorianDateStr",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
 
-                            Column(modifier = Modifier.weight(1f)) {
-                                val cityDisplayName = if (isEnglish) "${selectedCity.nameEn}, Saudi Arabia" else "${selectedCity.nameAr}، المملكة العربية السعودية"
-                                val hijriMonthName = if (isEnglish) {
-                                    when (hijriDate.monthNameAr) {
-                                        "محرم" -> "Muharram"
-                                        "صفر" -> "Safar"
-                                        "ربيع الأول" -> "Rabi' I"
-                                        "ربيع الثاني" -> "Rabi' II"
-                                        "جمادى الأولى" -> "Jumada I"
-                                        "جمادى الآخرة" -> "Jumada II"
-                                        "رجب" -> "Rajab"
-                                        "شعبان" -> "Sha'ban"
-                                        "رمضان" -> "Ramadan"
-                                        "شوال" -> "Shawwal"
-                                        "ذو القعدة" -> "Dhu al-Qi'dah"
-                                        "ذو الحجة" -> "Dhu al-Hijjah"
-                                        else -> hijriDate.monthNameAr
-                                    }
-                                } else {
-                                    hijriDate.monthNameAr
-                                }
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = userPrimaryColor.copy(alpha = 0.12f),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, userPrimaryColor.copy(alpha = 0.25f))
+                            ) {
+                                Text(
+                                    text = if (isEnglish) "Hayati 🌿" else "حياتي 🌿",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = userPrimaryColor,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                )
+                            }
+                        }
+                    }
+                }
 
+                // 2. HERO CARD: NEXT PRAYER & COUNTDOWN (بطاقة الصلاة القادمة والعد التنازلي)
+                item {
+                    val remainingHours = prayerTimes.minutesUntilNext / 60
+                    val remainingMins = prayerTimes.minutesUntilNext % 60
+                    val countdownStr = if (remainingHours > 0) {
+                        if (isEnglish) "$remainingHours hr $remainingMins min" else "$remainingHours س $remainingMins د"
+                    } else {
+                        if (isEnglish) "$remainingMins minutes" else "$remainingMins دقيقة"
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color.Transparent,
+                        shadowElevation = 6.dp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("home_next_prayer_card")
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    androidx.compose.ui.graphics.Brush.linearGradient(
+                                        listOf(
+                                            Color(0xFF064E3B), // Emerald 900
+                                            Color(0xFF1B4332), // Forest deep green
+                                            Color(0xFF2D6A4F)  // Emerald mid
+                                        )
+                                    )
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0xFFD4A373).copy(alpha = 0.4f), // Saudi Gold accent
+                                    shape = RoundedCornerShape(24.dp)
+                                )
+                                .padding(20.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(14.dp)
+                            ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = cityDisplayName,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 15.sp,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFFD4A373).copy(alpha = 0.25f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Mosque,
+                                                contentDescription = null,
+                                                tint = Color(0xFFD4A373),
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        Text(
+                                            text = if (isEnglish) "Next Prayer" else "الصلاة القادمة",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = Color.White.copy(alpha = 0.85f)
+                                        )
+                                    }
+
                                     Surface(
-                                        onClick = { showColorPickerSheet = true },
                                         shape = RoundedCornerShape(12.dp),
-                                        color = userPrimaryColor.copy(alpha = 0.12f)
+                                        color = Color(0xFFD4A373).copy(alpha = 0.20f),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFD4A373).copy(alpha = 0.5f))
                                     ) {
                                         Text(
-                                            text = if (isEnglish) "Theme 🌿" else "السمة 🌿",
-                                            fontSize = 11.sp,
+                                            text = prayerTimes.nextPrayerTime,
+                                            fontSize = 13.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = userPrimaryColor,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            color = Color(0xFFFFE3B3),
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = prayerTimes.nextPrayerName,
+                                            fontFamily = com.example.ui.theme.AmiriFontFamily,
+                                            fontSize = 32.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                        Text(
+                                            text = if (isEnglish) "Time remaining until Adhan" else "المتبقي حتى يحين موعد الأذان",
+                                            fontSize = 12.sp,
+                                            color = Color.White.copy(alpha = 0.75f)
+                                        )
+                                    }
+
+                                    // Countdown badge
+                                    Surface(
+                                        shape = RoundedCornerShape(16.dp),
+                                        color = Color.Black.copy(alpha = 0.35f),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFD4A373).copy(alpha = 0.3f))
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Timer,
+                                                contentDescription = null,
+                                                tint = Color(0xFFD4A373),
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Text(
+                                                text = countdownStr,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 3. HORIZONTAL PRAYER TIMES BAR (الفجر، الشروق، الظهر، العصر، المغرب، العشاء)
+                item {
+                    val prayersList = listOf(
+                        Triple(if (isEnglish) "Fajr" else "الفجر", prayerTimes.fajr, Icons.Default.NightsStay),
+                        Triple(if (isEnglish) "Sunrise" else "الشروق", prayerTimes.sunrise, Icons.Default.WbSunny),
+                        Triple(if (isEnglish) "Dhuhr" else "الظهر", prayerTimes.dhuhr, Icons.Default.LightMode),
+                        Triple(if (isEnglish) "Asr" else "العصر", prayerTimes.asr, Icons.Default.WbTwilight),
+                        Triple(if (isEnglish) "Maghrib" else "المغرب", prayerTimes.maghrib, Icons.Default.Bedtime),
+                        Triple(if (isEnglish) "Isha" else "العشاء", prayerTimes.isha, Icons.Default.DarkMode)
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp, horizontal = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            prayersList.forEach { (name, time, icon) ->
+                                val isNext = prayerTimes.nextPrayerName.contains(name) || name.contains(prayerTimes.nextPrayerName)
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(if (isNext) Color(0xFF064E3B).copy(alpha = 0.12f) else Color.Transparent)
+                                        .padding(vertical = 6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = name,
+                                        tint = if (isNext) Color(0xFF064E3B) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = name,
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isNext) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isNext) Color(0xFF064E3B) else MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = time,
+                                        fontSize = 10.sp,
+                                        fontWeight = if (isNext) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isNext) Color(0xFF064E3B) else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 4. QUICK ISLAMIC & LIFE SHORTCUTS (القرآن، الأذكار، القبلة، المهام)
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Surface(
+                            onClick = { onNavigate(ActiveScreen.Worship) },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(38.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF064E3B).copy(alpha = 0.12f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.MenuBook, contentDescription = null, tint = Color(0xFF064E3B), modifier = Modifier.size(20.dp))
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    text = if (isEnglish) "${hijriDate.day} $hijriMonthName ${hijriDate.year} AH • $userName" else "${hijriDate.day} ${hijriDate.monthNameAr} ${hijriDate.year} هـ • أهلاً $userName",
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = if (isEnglish) "Quran" else "القرآن الكريم",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
+                        Surface(
+                            onClick = { onNavigate(ActiveScreen.AdhkarSession(isMorning = true)) },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(38.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFD4A373).copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.VolunteerActivism, contentDescription = null, tint = Color(0xFFD4A373), modifier = Modifier.size(20.dp))
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = if (isEnglish) "Adhkar" else "الأذكار",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
+                        Surface(
+                            onClick = { onNavigate(ActiveScreen.Worship) },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(38.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF0284C7).copy(alpha = 0.12f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Explore, contentDescription = null, tint = Color(0xFF0284C7), modifier = Modifier.size(20.dp))
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = if (isEnglish) "Qibla" else "القبلة",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }

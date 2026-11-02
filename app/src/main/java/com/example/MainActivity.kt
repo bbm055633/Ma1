@@ -101,17 +101,29 @@ class MainActivity : ComponentActivity() {
                 val currentTab by viewModel.currentTab.collectAsStateWithLifecycle()
                 val starryNightSettings by viewModel.starryNightSettings.collectAsStateWithLifecycle()
                 val userName by viewModel.userName.collectAsStateWithLifecycle()
+                val userProfileImageUri by viewModel.userProfileImageUri.collectAsStateWithLifecycle()
 
                 // Starry Night live sky and card transparency apply globally across the entire app as requested
                 val isLiveThemeActive = starryNightSettings.isEnabled
                 val cardTransparency = if (isLiveThemeActive) starryNightSettings.cardTransparency else 1.0f
+
+                val userProfileData = remember(userName, userProfileImageUri) {
+                    com.example.ui.components.UserProfileData(
+                        userName = userName,
+                        userProfileImageUri = userProfileImageUri,
+                        notificationCount = 3,
+                        onAvatarClick = { viewModel.navigateTo(ActiveScreen.FullScreenMenu) },
+                        onNotificationClick = { viewModel.navigateTo(ActiveScreen.FullScreenMenu) }
+                    )
+                }
 
                 CompositionLocalProvider(
                     LocalLayoutDirection provides layoutDirection,
                     androidx.compose.ui.platform.LocalDensity provides customDensity,
                     com.example.ui.util.LocalAppLanguage provides isEnglish,
                     com.example.ui.theme.LocalCardTransparency provides cardTransparency,
-                    com.example.ui.components.LocalStarryNightActive provides isLiveThemeActive
+                    com.example.ui.components.LocalStarryNightActive provides isLiveThemeActive,
+                    com.example.ui.components.LocalUserProfile provides userProfileData
                 ) {
                     Box(
                         modifier = Modifier
@@ -214,6 +226,17 @@ fun ZheenApp(
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
+                        val currentTabTitle = remember(currentTab, isEnglish) {
+                            when (currentTab) {
+                                0 -> if (isEnglish) "Home" else "الرئيسية"
+                                1 -> if (isEnglish) "Agents" else "الوكلاء"
+                                2 -> if (isEnglish) "Products" else "المنتجات"
+                                3 -> if (isEnglish) "Schedule & Calendar" else "الجدول والتقويم"
+                                4 -> if (isEnglish) "Worship & Surahs" else "العبادات والسور"
+                                else -> if (isEnglish) "Fahad AI" else "فهد للذكاء الاصطناعي"
+                            }
+                        }
+
                         when (currentTab) {
                             0 -> HomeScreen(
                                 viewModel = viewModel,
@@ -242,22 +265,10 @@ fun ZheenApp(
                             )
                         }
 
-                        // Horizontal divider below avatar (top = 78.dp)
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .statusBarsPadding()
-                                .padding(top = 78.dp),
-                            color = Color.White.copy(alpha = 0.3f),
-                            thickness = 1.dp
-                        )
-
-                        // Avatar Circle floating top-right (56.dp x 56.dp, #064E3B bg)
-                        UserAvatarCircle(
-                            userName = userName,
-                            userProfileImageUri = userProfileImageUri,
-                            modifier = Modifier.align(Alignment.TopEnd),
-                            onClick = { viewModel.navigateTo(ActiveScreen.FullScreenMenu) }
+                        // Standalone ZheenFloatingCapsule floating over content
+                        com.example.ui.components.ZheenFloatingCapsule(
+                            screenTitle = currentTabTitle,
+                            modifier = Modifier.align(Alignment.TopCenter)
                         )
                     }
                 }

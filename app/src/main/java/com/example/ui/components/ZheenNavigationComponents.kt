@@ -52,12 +52,12 @@ fun ZheenTopBar(
     onToggleLanguage: () -> Unit = {}
 ) {
     val screenTitle = when (currentTab) {
-        0 -> if (isEnglish) "Fahad Ai Home" else "الرئيسية • Fahad Ai"
-        1 -> if (isEnglish) "Specialized Agents" else "الوكلاء المتخصصون"
-        2 -> if (isEnglish) "Smart Documents" else "المنتجات الذكية"
-        3 -> if (isEnglish) "Agenda & Calendar" else "التقويم والأجندة"
-        4 -> if (isEnglish) "Worship & Adhan" else "العبادات والأذكار"
-        else -> "Fahad Ai"
+        0 -> if (isEnglish) "Hayati • Home" else "حياتي • الرئيسية"
+        1 -> if (isEnglish) "Worship & Quran" else "العبادة والقرآن"
+        2 -> if (isEnglish) "Daily Tasks" else "المهام اليومية"
+        3 -> if (isEnglish) "Hijri Calendar" else "التقويم والمواعيد"
+        4 -> if (isEnglish) "Smart Agents" else "الوكلاء الأذكياء"
+        else -> if (isEnglish) "Hayati" else "حياتي"
     }
 
     Box(
@@ -208,10 +208,10 @@ fun ZheenBottomBar(
         ) {
             val items = listOf(
                 Triple(if (isEnglish) "Home" else "الرئيسية", Icons.Default.Home, Icons.Outlined.Home),
-                Triple(if (isEnglish) "Agents" else "الوكلاء", Icons.Default.SupervisorAccount, Icons.Outlined.SupervisorAccount),
-                Triple(if (isEnglish) "Products" else "المنتجات", Icons.Default.DashboardCustomize, Icons.Outlined.DashboardCustomize),
+                Triple(if (isEnglish) "Worship" else "العبادة", Icons.Default.Mosque, Icons.Outlined.Mosque),
+                Triple(if (isEnglish) "Tasks" else "المهام", Icons.Default.CheckCircle, Icons.Outlined.CheckCircle),
                 Triple(if (isEnglish) "Calendar" else "التقويم", Icons.Default.CalendarMonth, Icons.Outlined.CalendarMonth),
-                Triple(if (isEnglish) "Worship" else "العبادات", Icons.Default.Mosque, Icons.Outlined.Mosque)
+                Triple(if (isEnglish) "Agents" else "الوكلاء", Icons.Default.AutoAwesome, Icons.Outlined.AutoAwesome)
             )
 
             items.forEachIndexed { index, item ->

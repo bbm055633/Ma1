@@ -304,6 +304,19 @@ object PrayerTimeCalculator {
         fallbackCity: CityLocation = SAUDI_CITIES[0]
     ): CityLocation {
         return try {
+            val hasFine = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            val hasCoarse = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+            if (!hasFine && !hasCoarse) {
+                return fallbackCity
+            }
+
             val locationManager = context.getSystemService(android.content.Context.LOCATION_SERVICE) as? android.location.LocationManager
             val providers = listOf(
                 android.location.LocationManager.GPS_PROVIDER,

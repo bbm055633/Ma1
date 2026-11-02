@@ -255,7 +255,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     @OptIn(ExperimentalCoroutinesApi::class)
     val prayerState: StateFlow<List<PrayerEntity>> = selectedDate.flatMapLatest { date ->
         repository.getPrayersForDate(date).map { list ->
-            val todayStr = java.time.LocalDate.now().toString()
+            val todayStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
             if (date == todayStr) {
                 val dbPrayer = list.firstOrNull()
                 if (dbPrayer != null) {
@@ -267,7 +267,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val selectedPrayerState: StateFlow<PrayerEntity?> = combine(selectedDate, _optimisticPrayers, prayerState) { date, optimistic, dbList ->
-        val todayStr = java.time.LocalDate.now().toString()
+        val todayStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
         if (date == todayStr) {
             optimistic[date] ?: dbList.firstOrNull()
         } else {
@@ -332,7 +332,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val currentDate = selectedDate.value
             val currentPrayers = prayerState.value
-            val todayStr = java.time.LocalDate.now().toString()
+            val todayStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
             val existing = if (currentDate == todayStr) {
                 _optimisticPrayers.value[currentDate] ?: currentPrayers.firstOrNull() ?: PrayerEntity(date = currentDate)
             } else {
@@ -1331,10 +1331,13 @@ fun calculateStreakForAction(
 ): Int {
     var streak = 0
     return try {
-        var currentDate = java.time.LocalDate.parse(dateStr)
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+        val cal = java.util.Calendar.getInstance()
+        val parsed = sdf.parse(dateStr) ?: return 0
+        cal.time = parsed
         while (true) {
-            currentDate = currentDate.minusDays(1)
-            val targetDateStr = currentDate.toString()
+            cal.add(java.util.Calendar.DAY_OF_YEAR, -1)
+            val targetDateStr = sdf.format(cal.time)
             val prayerForDate = allPrayers.firstOrNull { it.date == targetDateStr }
             if (prayerForDate != null && checkAction(prayerForDate)) {
                 streak++
@@ -1343,7 +1346,7 @@ fun calculateStreakForAction(
             }
         }
         streak
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         0
     }
 }

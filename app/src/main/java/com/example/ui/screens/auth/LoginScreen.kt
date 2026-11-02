@@ -196,19 +196,20 @@ fun LoginScreen(
                     // العنوان والترحيب
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = if (isEnglish) "Fahad AI • Enterprise" else "فهد الذكي • Fahad AI",
-                            fontSize = 20.sp,
+                            text = if (isEnglish) "Hayati • حياتي" else "حياتي",
+                            fontFamily = AmiriFontFamily,
+                            fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(modifier = Modifier.height(3.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = if (isRegistering) {
-                                if (isEnglish) "Create Executive AI Profile" else "تسجيل حساب تنفيذي جديد"
+                                if (isEnglish) "Create your personal account" else "تسجيل حساب شخصي جديد"
                             } else {
-                                if (isEnglish) "Welcome back, please sign in" else "يا هلا بك.. تفضل بتسجيل الدخول"
+                                if (isEnglish) "Your daily companion for faith, focus, and life" else "رفيقك اليومي للعبادة والإنتاجية وتنظيم الحياة"
                             },
-                            fontSize = 12.sp,
+                            fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
@@ -428,26 +429,38 @@ fun LoginScreen(
                         }
                     }
 
-                    // زر التخطي والمتابعة كضيف
+                    // زر التخطي والمتابعة كضيف بوزن بصري ثانوي واضح
                     OutlinedButton(
                         onClick = {
-                            viewModel.setUserName(if (isEnglish) "Guest User" else "ضيف التطبيق")
-                            viewModel.setUserEmail("guest@fahadai.local")
+                            viewModel.setUserName(if (isEnglish) "Guest User" else "ضيف حياتي")
+                            viewModel.setUserEmail("guest@hayati.app")
                             onLoginSuccess()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(46.dp)
+                            .height(48.dp)
                             .testTag("login_guest_button"),
                         shape = Shapes2027.Medium,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
-                    ) {
-                        Text(
-                            text = if (isEnglish) "Continue as Guest 👤" else "تخطٍّ ومتابعة كضيف 👤",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary
+                        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
                         )
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.PersonOutline,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = if (isEnglish) "Continue as Guest" else "تخطي كضيف",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
 
                     // التبديل بين تسجيل الدخول وتسجيل حساب جديد

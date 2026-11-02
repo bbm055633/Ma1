@@ -68,7 +68,7 @@ fun TaskScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
-                    .padding(top = 12.dp, bottom = 90.dp),
+                    .padding(top = 80.dp, bottom = 90.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Header & Metrics Row
@@ -79,15 +79,16 @@ fun TaskScreen(
                 ) {
                     Column {
                         Text(
-                            text = "إدارة المهام المتقدمة",
+                            text = "قائمة المهام والتذكيرات",
+                            fontFamily = com.example.ui.theme.AmiriFontFamily,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            color = Color(0xFF1C1B1A)
+                            fontSize = 24.sp,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "نظام مستقل ومتكامل مع التقويم والذكاء الاصطناعي",
+                            text = "نظام متكامل لتنظيم أولويات يومك وإنجاز أهدافك",
                             fontSize = 12.sp,
-                            color = Color(0xFF6E685F)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 

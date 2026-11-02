@@ -229,14 +229,18 @@ fun WorshipScreen(
                                     onPreviousDay = {
                                         val next = selectedDayIndex + 1
                                         selectedDayIndex = next
-                                        val newDate = LocalDate.now().minusDays(next.toLong()).toString()
+                                        val cal = java.util.Calendar.getInstance()
+                                        cal.add(java.util.Calendar.DAY_OF_YEAR, -next)
+                                        val newDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(cal.time)
                                         viewModel.setSelectedDate(newDate)
                                     },
                                     onNextDay = {
                                         if (selectedDayIndex > 0) {
                                             val prev = selectedDayIndex - 1
                                             selectedDayIndex = prev
-                                            val newDate = LocalDate.now().minusDays(prev.toLong()).toString()
+                                            val cal = java.util.Calendar.getInstance()
+                                            cal.add(java.util.Calendar.DAY_OF_YEAR, -prev)
+                                            val newDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(cal.time)
                                             viewModel.setSelectedDate(newDate)
                                         }
                                     },
@@ -254,7 +258,9 @@ fun WorshipScreen(
                                     selectedDayIndex = selectedDayIndex,
                                     onDayChange = { newIdx ->
                                         selectedDayIndex = newIdx
-                                        val newDate = LocalDate.now().minusDays(newIdx.toLong()).toString()
+                                        val cal = java.util.Calendar.getInstance()
+                                        cal.add(java.util.Calendar.DAY_OF_YEAR, -newIdx)
+                                        val newDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(cal.time)
                                         viewModel.setSelectedDate(newDate)
                                     },
                                     isEnglish = isEnglish,
