@@ -283,15 +283,9 @@ fun FaithJourneyPrayerTrackingCard(
             HorizontalDivider(color = dividerColor, thickness = 0.8.dp)
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 6. Sunrise Row
-            SunriseRow(sunriseTime = prayerTimes.sunrise)
-
-            Spacer(modifier = Modifier.height(10.dp))
-            HorizontalDivider(color = dividerColor, thickness = 0.8.dp)
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // 7. Tri-Capsules Row: Duha, Morning Adhkar, and Fasting
-            FaithJourneyTriCapsulesRow(
+            // 6. Sunrise Card (Sunrise time + 3 capsules: Duha, Morning Adhkar, Fasting)
+            SunriseRow(
+                sunriseTime = prayerTimes.sunrise,
                 isDuhaDone = isDuhaDone,
                 onToggleDuha = onToggleDuha,
                 isMorningAdhkarDone = isMorningAdhkarDone,
@@ -525,7 +519,17 @@ fun calculateSunriseProhibitedRemainingSeconds(sunriseTimeStr: String): Int {
 }
 
 @Composable
-fun SunriseRow(sunriseTime: String) {
+fun SunriseRow(
+    sunriseTime: String,
+    isDuhaDone: Boolean,
+    onToggleDuha: () -> Unit,
+    isMorningAdhkarDone: Boolean,
+    onToggleMorningAdhkar: () -> Unit,
+    onOpenMorningAdhkarSheet: () -> Unit,
+    isFastingDone: Boolean,
+    onToggleFasting: () -> Unit,
+    duhaStreak: Int = 0
+) {
     val isLiveSky = com.example.ui.components.LocalStarryNightActive.current
     val cardAlpha = com.example.ui.theme.LocalCardTransparency.current
     val surfaceColor = MaterialTheme.colorScheme.surface.copy(alpha = if (isLiveSky) cardAlpha else 1.0f)
@@ -536,42 +540,61 @@ fun SunriseRow(sunriseTime: String) {
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(8.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("🌅", fontSize = 18.sp)
-                Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("🌅", fontSize = 18.sp)
+                    Column {
+                        Text(
+                            text = "الشروق",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFDE68A)
+                        )
+                        Text(
+                            text = "انتهاء وقت النهي عن الصلاة",
+                            fontSize = 10.sp,
+                            color = FaithSubtleText
+                        )
+                    }
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFFFDE68A).copy(alpha = 0.2f)
+                ) {
                     Text(
-                        text = "وقت الشروق",
-                        fontSize = 13.sp,
+                        text = sunriseTime,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFDE68A)
-                    )
-                    Text(
-                        text = "انتهاء وقت النهي عن الصلاة",
-                        fontSize = 10.sp,
-                        color = FaithSubtleText
+                        color = Color(0xFFD97706),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
             }
 
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = Color(0xFFFDE68A).copy(alpha = 0.2f)
-            ) {
-                Text(
-                    text = sunriseTime,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFD97706),
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                )
-            }
+            Spacer(modifier = Modifier.height(6.dp))
+
+            FaithJourneyTriCapsulesRow(
+                isDuhaDone = isDuhaDone,
+                onToggleDuha = onToggleDuha,
+                isMorningAdhkarDone = isMorningAdhkarDone,
+                onToggleMorningAdhkar = onToggleMorningAdhkar,
+                onOpenMorningAdhkarSheet = onOpenMorningAdhkarSheet,
+                isFastingDone = isFastingDone,
+                onToggleFasting = onToggleFasting,
+                duhaStreak = duhaStreak
+            )
         }
     }
 }
@@ -590,13 +613,14 @@ fun FaithJourneyTriCapsulesRow(
     val isLiveSky = com.example.ui.components.LocalStarryNightActive.current
     val cardAlpha = com.example.ui.theme.LocalCardTransparency.current
     val capsuleDefaultBg = MaterialTheme.colorScheme.surface.copy(alpha = if (isLiveSky) cardAlpha else 1.0f)
+    val isDarkMode = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(if (isLiveSky) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
-            .padding(8.dp),
+            .padding(6.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -672,12 +696,23 @@ fun FaithJourneyTriCapsulesRow(
             }
         }
 
-        // 3. صيام (Fasting)
+        // 3. صيام (Fasting) - Dark Blue theme
+        val fastingBg = if (isFastingDone) {
+            if (isDarkMode) Color(0xFF1E3A8A).copy(alpha = 0.45f) else Color(0xFFDBEAFE)
+        } else capsuleDefaultBg
+        val fastingBorder = if (isFastingDone) Color(0xFF3B82F6) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+        val fastingTitleColor = if (isFastingDone) {
+            if (isDarkMode) Color(0xFF93C5FD) else Color(0xFF1E3A8A)
+        } else MaterialTheme.colorScheme.onSurface
+        val fastingStatusColor = if (isFastingDone) {
+            if (isDarkMode) Color(0xFF60A5FA) else Color(0xFF1E40AF)
+        } else Color(0xFF94A3B8)
+
         Surface(
             onClick = onToggleFasting,
             shape = RoundedCornerShape(12.dp),
-            color = if (isFastingDone) Color(0xFFD1FAE5) else capsuleDefaultBg,
-            border = BorderStroke(1.dp, if (isFastingDone) Color(0xFF10B981) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+            color = fastingBg,
+            border = BorderStroke(1.dp, fastingBorder),
             modifier = Modifier.weight(1f)
         ) {
             Column(
@@ -690,7 +725,7 @@ fun FaithJourneyTriCapsulesRow(
                         text = "صيام",
                         fontSize = 10.5.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (isFastingDone) Color(0xFF065F46) else MaterialTheme.colorScheme.onSurface
+                        color = fastingTitleColor
                     )
                 }
                 Spacer(modifier = Modifier.height(2.dp))
@@ -698,7 +733,7 @@ fun FaithJourneyTriCapsulesRow(
                     text = if (isFastingDone) "صائم ✓" else "ما صمت",
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Medium,
-                    color = if (isFastingDone) Color(0xFF047857) else Color(0xFF94A3B8)
+                    color = fastingStatusColor
                 )
             }
         }
