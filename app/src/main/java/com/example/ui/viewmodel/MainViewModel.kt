@@ -614,6 +614,85 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         userPrefs.edit().putString("user_profile_image_uri", uri).apply()
     }
 
+    // Prayer & Notification Persistent Settings
+    private val _isPrayerAlertsEnabled = MutableStateFlow(userPrefs.getBoolean("prayer_alerts_enabled", true))
+    val isPrayerAlertsEnabled: StateFlow<Boolean> = _isPrayerAlertsEnabled.asStateFlow()
+
+    fun togglePrayerAlerts() {
+        val newValue = !_isPrayerAlertsEnabled.value
+        _isPrayerAlertsEnabled.value = newValue
+        userPrefs.edit().putBoolean("prayer_alerts_enabled", newValue).apply()
+    }
+
+    fun setPrayerAlertsEnabled(enabled: Boolean) {
+        _isPrayerAlertsEnabled.value = enabled
+        userPrefs.edit().putBoolean("prayer_alerts_enabled", enabled).apply()
+    }
+
+    private val _calculationMethod = MutableStateFlow(
+        userPrefs.getString("calculation_method", "تقويم أم القرى (المملكة العربية السعودية)") ?: "تقويم أم القرى (المملكة العربية السعودية)"
+    )
+    val calculationMethod: StateFlow<String> = _calculationMethod.asStateFlow()
+
+    fun setCalculationMethod(method: String) {
+        _calculationMethod.value = method
+        userPrefs.edit().putString("calculation_method", method).apply()
+    }
+
+    private val _iqamaDurationMinutes = MutableStateFlow(userPrefs.getInt("iqama_duration_minutes", 15))
+    val iqamaDurationMinutes: StateFlow<Int> = _iqamaDurationMinutes.asStateFlow()
+
+    fun setIqamaDurationMinutes(minutes: Int) {
+        _iqamaDurationMinutes.value = minutes
+        userPrefs.edit().putInt("iqama_duration_minutes", minutes).apply()
+    }
+
+    private val _azanSoundType = MutableStateFlow(
+        userPrefs.getString("azan_sound_type", "صوت المؤذن (الأذان الكامل)") ?: "صوت المؤذن (الأذان الكامل)"
+    )
+    val azanSoundType: StateFlow<String> = _azanSoundType.asStateFlow()
+
+    fun setAzanSoundType(type: String) {
+        _azanSoundType.value = type
+        userPrefs.edit().putString("azan_sound_type", type).apply()
+    }
+
+    private val _scheduleAlertsEnabled = MutableStateFlow(userPrefs.getBoolean("schedule_alerts_enabled", true))
+    val scheduleAlertsEnabled: StateFlow<Boolean> = _scheduleAlertsEnabled.asStateFlow()
+
+    fun setScheduleAlertsEnabled(enabled: Boolean) {
+        _scheduleAlertsEnabled.value = enabled
+        userPrefs.edit().putBoolean("schedule_alerts_enabled", enabled).apply()
+    }
+
+    private val _scheduleAlertTone = MutableStateFlow(
+        userPrefs.getString("schedule_alert_tone", "الافتراضي (تنبيه تنفيذي)") ?: "الافتراضي (تنبيه تنفيذي)"
+    )
+    val scheduleAlertTone: StateFlow<String> = _scheduleAlertTone.asStateFlow()
+
+    fun setScheduleAlertTone(tone: String) {
+        _scheduleAlertTone.value = tone
+        userPrefs.edit().putString("schedule_alert_tone", tone).apply()
+    }
+
+    private val _taskAlertsEnabled = MutableStateFlow(userPrefs.getBoolean("task_alerts_enabled", true))
+    val taskAlertsEnabled: StateFlow<Boolean> = _taskAlertsEnabled.asStateFlow()
+
+    fun setTaskAlertsEnabled(enabled: Boolean) {
+        _taskAlertsEnabled.value = enabled
+        userPrefs.edit().putBoolean("task_alerts_enabled", enabled).apply()
+    }
+
+    private val _taskAlertTone = MutableStateFlow(
+        userPrefs.getString("task_alert_tone", "الافتراضي (نغمة إنجاز)") ?: "الافتراضي (نغمة إنجاز)"
+    )
+    val taskAlertTone: StateFlow<String> = _taskAlertTone.asStateFlow()
+
+    fun setTaskAlertTone(tone: String) {
+        _taskAlertTone.value = tone
+        userPrefs.edit().putString("task_alert_tone", tone).apply()
+    }
+
     // Daily Prayers Attendance Tracking (متابعة صلوات اليوم الخمس) - Defaults to NONE
     private val _fajrAttendance = MutableStateFlow(com.example.ui.screens.worship.AttendanceColumn.NONE)
     val fajrAttendance: StateFlow<com.example.ui.screens.worship.AttendanceColumn> = _fajrAttendance.asStateFlow()

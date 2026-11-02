@@ -3,6 +3,8 @@ package com.example.ui.components
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -96,16 +98,22 @@ fun ZheenFloatingCapsule(
     val primaryTextColor = if (isDarkMode || isStarry) Color.White else Color(0xFF1A1A1A)
     val accentColor = MaterialTheme.colorScheme.primary
 
-    val capsuleWidthFraction by animateFloatAsState(
-        targetValue = if (isCollapsed) 0.18f else 1.0f,
+    val animatedBgColor by animateColorAsState(
+        targetValue = if (isCollapsed) Color.Transparent else containerBg,
         animationSpec = tween(250),
-        label = "capsule_width_fraction"
+        label = "capsule_bg_color"
     )
 
-    val capsuleHorizPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 16.dp else 16.dp,
+    val animatedBorderColor by animateColorAsState(
+        targetValue = if (isCollapsed) Color.Transparent else borderColor,
         animationSpec = tween(250),
-        label = "capsule_horiz_padding"
+        label = "capsule_border_color"
+    )
+
+    val animatedElevation by animateDpAsState(
+        targetValue = if (isCollapsed) 0.dp else (if (isStarry) 2.dp else 6.dp),
+        animationSpec = tween(250),
+        label = "capsule_elevation"
     )
 
     val capsuleHeight by animateDpAsState(
@@ -131,20 +139,19 @@ fun ZheenFloatingCapsule(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = capsuleHorizPadding, vertical = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
             .testTag("zheen_floating_capsule_wrapper"),
-        contentAlignment = Alignment.TopStart
+        contentAlignment = Alignment.TopCenter
     ) {
         Surface(
             shape = CircleShape,
-            color = containerBg,
-            shadowElevation = if (isStarry) 2.dp else 6.dp,
-            border = BorderStroke(1.dp, borderColor),
+            color = animatedBgColor,
+            shadowElevation = animatedElevation,
+            border = BorderStroke(if (isCollapsed) 0.dp else 1.dp, animatedBorderColor),
             modifier = Modifier
-                .then(
-                    if (isCollapsed) Modifier.width(52.dp) else Modifier.fillMaxWidth()
-                )
+                .then(if (isCollapsed) Modifier.wrapContentWidth() else Modifier.fillMaxWidth())
                 .height(capsuleHeight)
+                .animateContentSize(animationSpec = tween(250))
                 .testTag("zheen_floating_capsule")
         ) {
             Row(

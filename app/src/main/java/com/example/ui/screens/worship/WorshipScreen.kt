@@ -54,6 +54,7 @@ fun WorshipScreen(
     val selectedPrayer by viewModel.selectedPrayerState.collectAsState()
     val streaks by viewModel.prayerStreaksState.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
+    val isPrayerAlertsEnabled by viewModel.isPrayerAlertsEnabled.collectAsState()
 
     // 0: صلاتي, 1: القبلة والصيام, 2: قرآني, 3: أذكارى
     var currentSubTab by remember { mutableIntStateOf(0) }
@@ -201,12 +202,7 @@ fun WorshipScreen(
                             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
-                            // 2.1. بطاقة الصلاة القادمة (الصلاة القادمة + الوقت المتبقي)
-                            item {
-                                NextPrayerCountdownBanner(prayerTimes = prayerTimes)
-                            }
-
-                            // 2.2. بطاقة التاريخ الهجري + مستوى الالتزام بالصلوات
+                            // 2.1. بطاقة العبادات والالتزام الموحدة (العد التنازلي + التاريخ + تتبع الصلوات)
                             item {
                                 val sunnahsDone = listOf(
                                     currentPrayerRecord.fajrQ,
@@ -226,6 +222,7 @@ fun WorshipScreen(
                                     streakDays = streaks.fajrMasjid.coerceAtLeast(1),
                                     hijriDate = hijriDate,
                                     dayOffset = selectedDayIndex,
+                                    prayerTimes = prayerTimes,
                                     onPreviousDay = {
                                         val next = selectedDayIndex + 1
                                         selectedDayIndex = next
@@ -245,9 +242,8 @@ fun WorshipScreen(
                                         }
                                     },
                                     onOpenQibla = { showQiblaDialog = true },
-                                    onToggleAlert = { /* alert toggle */ },
-                                    isAlertEnabled = true,
-                                    onOpenSettings = { onNavigate(ActiveScreen.Profile) }
+                                    onToggleAlert = { viewModel.togglePrayerAlerts() },
+                                    isAlertEnabled = isPrayerAlertsEnabled
                                 )
                             }
 

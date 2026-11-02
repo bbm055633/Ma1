@@ -77,12 +77,28 @@ fun FullScreenMenuScreen(
     val repetitionDhikrText by viewModel.repetitionDhikrText.collectAsState()
     val repetitionTarget by viewModel.repetitionTarget.collectAsState()
 
+    val isPrayerAlertsEnabled by viewModel.isPrayerAlertsEnabled.collectAsState()
+    val calculationMethod by viewModel.calculationMethod.collectAsState()
+    val iqamaDurationMinutes by viewModel.iqamaDurationMinutes.collectAsState()
+    val azanSoundType by viewModel.azanSoundType.collectAsState()
+    val scheduleAlertsEnabled by viewModel.scheduleAlertsEnabled.collectAsState()
+    val scheduleAlertTone by viewModel.scheduleAlertTone.collectAsState()
+    val taskAlertsEnabled by viewModel.taskAlertsEnabled.collectAsState()
+    val taskAlertTone by viewModel.taskAlertTone.collectAsState()
+    val isDndDuringWorship by viewModel.isDndDuringWorship.collectAsState()
+    val dndDurationMinutes by viewModel.dndDurationMinutes.collectAsState()
+
     // Active Tab in Settings (0 = المظهر وثيمات 2027, 1 = الملف الشخصي, 2 = النظام والصلوات)
     var selectedTab by remember { mutableIntStateOf(0) }
 
     // Dialogs & UI state
     var showColorDialog by remember { mutableStateOf(false) }
     var showCityDropdown by remember { mutableStateOf(false) }
+    var showCalcMethodDropdown by remember { mutableStateOf(false) }
+    var showIqamaDropdown by remember { mutableStateOf(false) }
+    var showAzanSoundDropdown by remember { mutableStateOf(false) }
+    var showScheduleToneDropdown by remember { mutableStateOf(false) }
+    var showTaskToneDropdown by remember { mutableStateOf(false) }
     var showSaveToast by remember { mutableStateOf(false) }
 
     // Profile form state
@@ -979,7 +995,7 @@ fun FullScreenMenuScreen(
             // التبويب 2: ⚙️ النظام، الصلوات، التنبيهات، والذكاء الاصطناعي
             // ================================================================
             if (selectedTab == 2) {
-                // بطاقة الصلوات والمدينة
+                // 1. بطاقة المواقيت والتنبيهات Comprehensive Prayer Times & Notifications
                 Surface(
                     shape = Shapes2027.Large,
                     color = MaterialTheme.colorScheme.surface.copy(alpha = if (isStarryActive) cardAlpha else 1.0f),
@@ -989,7 +1005,7 @@ fun FullScreenMenuScreen(
                 ) {
                     Column(
                         modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -999,7 +1015,7 @@ fun FullScreenMenuScreen(
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text("🕌", fontSize = 16.sp)
                                 Text(
-                                    text = if (isEnglish) "Prayer Times & City" else "مواقيت الصلاة والمدينة",
+                                    text = if (isEnglish) "Prayer Times & Notifications" else "المواقيت والتنبيهات",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -1051,26 +1067,465 @@ fun FullScreenMenuScreen(
                             }
                         }
 
-                        // تبديل تنبيهات الأذان
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+                        // طريقة حساب مواقيت الأذان
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showCalcMethodDropdown = !showCalcMethodDropdown }
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = if (isEnglish) "Calculation Method" else "طريقة حساب مواقيت الأذان",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = calculationMethod,
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+
+                            if (showCalcMethodDropdown) {
+                                val methods = listOf(
+                                    "تقويم أم القرى (المملكة العربية السعودية)",
+                                    "رابطة العالم الإسلامي",
+                                    "الهيئة العامة المصرية للمساحة",
+                                    "جامعة العلوم الإسلامية بكراتشي",
+                                    "الاتحاد الإسلامي بأمريكا الشمالية (ISNA)"
+                                )
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), Shapes2027.Medium)
+                                        .padding(8.dp)
+                                ) {
+                                    methods.forEach { m ->
+                                        val isSel = calculationMethod == m
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(Shapes2027.Small)
+                                                .clickable {
+                                                    viewModel.setCalculationMethod(m)
+                                                    showCalcMethodDropdown = false
+                                                }
+                                                .padding(horizontal = 8.dp, vertical = 6.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = m,
+                                                fontSize = 11.5.sp,
+                                                fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                                color = if (isSel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                            )
+                                            if (isSel) {
+                                                Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // مدة الإقامة بعد الأذان بالدقائق
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showIqamaDropdown = !showIqamaDropdown }
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = if (isEnglish) "Iqama Duration" else "مدة الإقامة بعد الأذان",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "$iqamaDurationMinutes دقيقة",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+
+                            if (showIqamaDropdown) {
+                                val durations = listOf(10, 15, 20, 25, 30)
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    durations.forEach { d ->
+                                        val isSel = iqamaDurationMinutes == d
+                                        FilterChip(
+                                            selected = isSel,
+                                            onClick = {
+                                                viewModel.setIqamaDurationMinutes(d)
+                                                showIqamaDropdown = false
+                                            },
+                                            label = { Text("$d دقيقة", fontSize = 11.sp, fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal) }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+                        // تفعيل أو إيقاف تنبيهات الأذان
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = if (isEnglish) "Adhan Alerts & Notifications" else "تنبيهات الأذان والأذكار",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (isEnglish) "Adhan & Prayer Alerts" else "تنبيهات الأذان والصلوات",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (isPrayerAlertsEnabled) "التنبيهات مفعلة لمواقيت الصلاة" else "التنبيهات معطلة",
+                                    fontSize = 10.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                             Switch(
-                                checked = adhanAlertsEnabled,
-                                onCheckedChange = { adhanAlertsEnabled = it }
+                                checked = isPrayerAlertsEnabled,
+                                onCheckedChange = { viewModel.setPrayerAlertsEnabled(it) }
+                            )
+                        }
+
+                        // نوع التنبيه للأذان
+                        if (isPrayerAlertsEnabled) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { showAzanSoundDropdown = !showAzanSoundDropdown }
+                                        .padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = if (isEnglish) "Adhan Alert Sound" else "نوع التنبيه للأذان",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = azanSoundType,
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+
+                                if (showAzanSoundDropdown) {
+                                    val soundTypes = listOf(
+                                        "صوت المؤذن (الأذان الكامل)",
+                                        "صوت تنبيه عادي (نغمة هادئة)",
+                                        "اهتزاز فقط (صامت)"
+                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), Shapes2027.Medium)
+                                            .padding(8.dp)
+                                    ) {
+                                        soundTypes.forEach { st ->
+                                            val isSel = azanSoundType == st
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(Shapes2027.Small)
+                                                    .clickable {
+                                                        viewModel.setAzanSoundType(st)
+                                                        showAzanSoundDropdown = false
+                                                    }
+                                                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = st,
+                                                    fontSize = 11.5.sp,
+                                                    fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                                    color = if (isSel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                                )
+                                                if (isSel) {
+                                                    Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // وضع عدم الإزعاج DND
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (isEnglish) "DND Mode During Prayer" else "وضع الصامت تلقائياً عند الصلاة (DND)",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (isDndDuringWorship) "كتم الجوال تلقائياً أثناء الصلاة" else "معطل",
+                                    fontSize = 10.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = isDndDuringWorship,
+                                onCheckedChange = { viewModel.setDndDuringWorshipEnabled(it) }
                             )
                         }
                     }
                 }
 
-                // بطاقة خيارات الأمان والذكاء الاصطناعي
+                // 2. بطاقة تنبيهات المواعيد والمهام Schedule & Task Alerts
+                Surface(
+                    shape = Shapes2027.Large,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = if (isStarryActive) cardAlpha else 1.0f),
+                    shadowElevation = if (isStarryActive) 0.dp else 2.dp,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    modifier = maxW
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("🔔", fontSize = 16.sp)
+                            Text(
+                                text = if (isEnglish) "Schedule & Task Alerts" else "تنبيهات المواعيد والمهام",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // تنبيهات المواعيد والتقويم
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (isEnglish) "Schedule Alerts" else "تنبيهات المواعيد والتقويم",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (scheduleAlertsEnabled) "التنبيهات مفعلة" else "التنبيهات معطلة",
+                                    fontSize = 10.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = scheduleAlertsEnabled,
+                                onCheckedChange = { viewModel.setScheduleAlertsEnabled(it) }
+                            )
+                        }
+
+                        if (scheduleAlertsEnabled) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { showScheduleToneDropdown = !showScheduleToneDropdown }
+                                        .padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = if (isEnglish) "Schedule Alert Tone" else "نغمة تنبيه المواعيد",
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = scheduleAlertTone,
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+
+                                if (showScheduleToneDropdown) {
+                                    val tones = listOf(
+                                        "الافتراضي (تنبيه تنفيذي)",
+                                        "نغمة هادئة",
+                                        "نغمة كلاسيكية",
+                                        "جرس رقمي"
+                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), Shapes2027.Medium)
+                                            .padding(8.dp)
+                                    ) {
+                                        tones.forEach { t ->
+                                            val isSel = scheduleAlertTone == t
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(Shapes2027.Small)
+                                                    .clickable {
+                                                        viewModel.setScheduleAlertTone(t)
+                                                        showScheduleToneDropdown = false
+                                                    }
+                                                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = t,
+                                                    fontSize = 11.5.sp,
+                                                    fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                                    color = if (isSel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                                )
+                                                if (isSel) {
+                                                    Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+
+                        // تنبيهات المهام والتذكيرات
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (isEnglish) "Task Alerts" else "تنبيهات المهام والتذكيرات",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (taskAlertsEnabled) "التنبيهات مفعلة" else "التنبيهات معطلة",
+                                    fontSize = 10.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = taskAlertsEnabled,
+                                onCheckedChange = { viewModel.setTaskAlertsEnabled(it) }
+                            )
+                        }
+
+                        if (taskAlertsEnabled) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { showTaskToneDropdown = !showTaskToneDropdown }
+                                        .padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = if (isEnglish) "Task Alert Tone" else "نغمة تنبيه المهام",
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = taskAlertTone,
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+
+                                if (showTaskToneDropdown) {
+                                    val tones = listOf(
+                                        "الافتراضي (نغمة إنجاز)",
+                                        "تنبيه خفيف",
+                                        "نغمة طوارئ",
+                                        "تنبيه ذكي"
+                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), Shapes2027.Medium)
+                                            .padding(8.dp)
+                                    ) {
+                                        tones.forEach { t ->
+                                            val isSel = taskAlertTone == t
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(Shapes2027.Small)
+                                                    .clickable {
+                                                        viewModel.setTaskAlertTone(t)
+                                                        showTaskToneDropdown = false
+                                                    }
+                                                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = t,
+                                                    fontSize = 11.5.sp,
+                                                    fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                                    color = if (isSel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                                )
+                                                if (isSel) {
+                                                    Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 3. بطاقة خيارات الأمان والذكاء الاصطناعي
                 Surface(
                     shape = Shapes2027.Large,
                     color = MaterialTheme.colorScheme.surface.copy(alpha = if (isStarryActive) cardAlpha else 1.0f),

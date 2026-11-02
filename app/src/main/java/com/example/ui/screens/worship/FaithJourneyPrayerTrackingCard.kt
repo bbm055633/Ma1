@@ -251,7 +251,10 @@ fun FaithJourneyPrayerTrackingCard(
                 HorizontalDivider(color = dividerColor, thickness = 0.8.dp)
                 Spacer(modifier = Modifier.height(10.dp))
 
-             // 5. Prayer Row: الفجر (Qabliyah only)
+                val nextName = prayerTimes.nextPrayerName
+                val targetNextPrayer = if (nextName == "الشروق") "الظهر" else nextName
+
+              // 5. Prayer Row: الفجر (Qabliyah only)
             PrayerTrackingTableRow(
                 prayerName = "الفجر",
                 azanTime = prayerTimes.fajr,
@@ -268,7 +271,10 @@ fun FaithJourneyPrayerTrackingCard(
                 masjidStreak = streaks.fajrMasjid,
                 homeStreak = streaks.fajrHome,
                 lateStreak = streaks.fajrLate,
-                badiyahStreak = streaks.fajrBadiyah
+                badiyahStreak = streaks.fajrBadiyah,
+                isNextPrayer = targetNextPrayer == "الفجر",
+                minutesUntilNext = prayerTimes.minutesUntilNext,
+                selectedDayIndex = selectedDayIndex
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -307,7 +313,10 @@ fun FaithJourneyPrayerTrackingCard(
                 masjidStreak = streaks.dhuhrMasjid,
                 homeStreak = streaks.dhuhrHome,
                 lateStreak = streaks.dhuhrLate,
-                badiyahStreak = streaks.dhuhrBadiyah
+                badiyahStreak = streaks.dhuhrBadiyah,
+                isNextPrayer = targetNextPrayer == "الظهر",
+                minutesUntilNext = prayerTimes.minutesUntilNext,
+                selectedDayIndex = selectedDayIndex
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -331,7 +340,10 @@ fun FaithJourneyPrayerTrackingCard(
                 masjidStreak = streaks.asrMasjid,
                 homeStreak = streaks.asrHome,
                 lateStreak = streaks.asrLate,
-                badiyahStreak = streaks.asrBadiyah
+                badiyahStreak = streaks.asrBadiyah,
+                isNextPrayer = targetNextPrayer == "العصر",
+                minutesUntilNext = prayerTimes.minutesUntilNext,
+                selectedDayIndex = selectedDayIndex
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -355,7 +367,10 @@ fun FaithJourneyPrayerTrackingCard(
                 masjidStreak = streaks.maghribMasjid,
                 homeStreak = streaks.maghribHome,
                 lateStreak = streaks.maghribLate,
-                badiyahStreak = streaks.maghribBadiyah
+                badiyahStreak = streaks.maghribBadiyah,
+                isNextPrayer = targetNextPrayer == "المغرب",
+                minutesUntilNext = prayerTimes.minutesUntilNext,
+                selectedDayIndex = selectedDayIndex
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -379,7 +394,10 @@ fun FaithJourneyPrayerTrackingCard(
                 masjidStreak = streaks.ishaMasjid,
                 homeStreak = streaks.ishaHome,
                 lateStreak = streaks.ishaLate,
-                badiyahStreak = streaks.ishaBadiyah
+                badiyahStreak = streaks.ishaBadiyah,
+                isNextPrayer = targetNextPrayer == "العشاء",
+                minutesUntilNext = prayerTimes.minutesUntilNext,
+                selectedDayIndex = selectedDayIndex
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -670,6 +688,37 @@ fun calculateIqamaTime(azanTime: String): String {
     return azanTime
 }
 
+fun hasPrayerTimePassed(azanTimeStr: String, selectedDayIndex: Int): Boolean {
+    if (selectedDayIndex > 0) return true
+    try {
+        val parts = azanTimeStr.split(":")
+        if (parts.size >= 2) {
+            val hStr = parts[0].trim()
+            val mAndPeriod = parts[1].trim()
+            val mStr = mAndPeriod.take(2)
+            val period = if (mAndPeriod.length > 2) mAndPeriod.substring(3).trim() else ""
+            
+            val h = hStr.toIntOrNull() ?: 5
+            val m = mStr.toIntOrNull() ?: 0
+            
+            val isPm = period.contains("م") || period.contains("PM", ignoreCase = true)
+            val isAm = period.contains("ص") || period.contains("AM", ignoreCase = true)
+            val h24 = when {
+                isPm && h < 12 -> h + 12
+                isAm && h == 12 -> 0
+                else -> h
+            }
+            val prayerTotalM = h24 * 60 + m
+            
+            val now = java.util.Calendar.getInstance()
+            val nowTotalM = now.get(java.util.Calendar.HOUR_OF_DAY) * 60 + now.get(java.util.Calendar.MINUTE)
+            
+            return nowTotalM > (prayerTotalM + 30)
+        }
+    } catch (_: Exception) {}
+    return false
+}
+
 @Composable
 fun PrayerTrackingTableRow(
     prayerName: String,
@@ -687,29 +736,77 @@ fun PrayerTrackingTableRow(
     masjidStreak: Int = 0,
     homeStreak: Int = 0,
     lateStreak: Int = 0,
-    badiyahStreak: Int = 0
+    badiyahStreak: Int = 0,
+    isNextPrayer: Boolean = false,
+    minutesUntilNext: Int = 0,
+    selectedDayIndex: Int = 0
 ) {
     val iqamaLabel = if (isEnglish) "Iqama" else "الإقامة"
     val iqamaTime = calculateIqamaTime(azanTime)
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val isDarkMode = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+
+    val rowBg = when {
+        attendance == AttendanceColumn.LATE -> if (isDarkMode) Color(0xFF451A03).copy(alpha = 0.4f) else Color(0xFFFEF3C7) // Light orange
+        attendance == AttendanceColumn.IN_MOSQUE || attendance == AttendanceColumn.AT_HOME -> if (isDarkMode) Color(0xFF064E3B).copy(alpha = 0.4f) else Color(0xFFD1FAE5) // Light green
+        isNextPrayer -> Color.Transparent
+        hasPrayerTimePassed(azanTime, selectedDayIndex) -> if (isDarkMode) Color(0xFF7F1D1D).copy(alpha = 0.35f) else Color(0xFFFEE2E2) // Very light red
+        else -> Color.Transparent
+    }
+
+    val rowModifier = if (isNextPrayer) {
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(rowBg)
+            .border(1.dp, primaryColor, RoundedCornerShape(12.dp))
+            .padding(horizontal = 8.dp, vertical = 6.dp)
+    } else {
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(rowBg)
+            .padding(horizontal = 8.dp, vertical = 6.dp)
+    }
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
+        modifier = rowModifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         // 1. Prayer Name & Time (Rightmost in RTL)
         Column(
-            modifier = Modifier.width(84.dp),
+            modifier = Modifier.width(96.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(
-                text = prayerName,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = prayerName,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isNextPrayer) primaryColor else MaterialTheme.colorScheme.onSurface
+                )
+                if (isNextPrayer) {
+                    val hours = minutesUntilNext / 60
+                    val mins = minutesUntilNext % 60
+                    val countdownStr = String.format(java.util.Locale.US, "%02d:%02d", hours, mins)
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = primaryColor.copy(alpha = 0.2f)
+                    ) {
+                        Text(
+                            text = "متبقي $countdownStr",
+                            fontSize = 8.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor,
+                            modifier = Modifier.padding(horizontal = 3.dp, vertical = 1.dp)
+                        )
+                    }
+                }
+            }
             Text(
                 text = azanTime,
                 fontSize = 11.sp,

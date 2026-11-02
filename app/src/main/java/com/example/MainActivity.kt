@@ -233,13 +233,11 @@ fun ZheenApp(
                     val density = LocalDensity.current
                     var measuredCapsuleHeightPx by remember { mutableIntStateOf(0) }
                     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-                    val topContentPadding = remember(measuredCapsuleHeightPx, density, statusBarTop, isCapsuleCollapsed) {
-                        if (isCapsuleCollapsed) {
-                            statusBarTop + 48.dp
-                        } else if (measuredCapsuleHeightPx > 0) {
+                    val topContentPadding = remember(measuredCapsuleHeightPx, density, statusBarTop) {
+                        if (measuredCapsuleHeightPx > 0) {
                             with(density) { measuredCapsuleHeightPx.toDp() }
                         } else {
-                            statusBarTop + 72.dp
+                            statusBarTop + 56.dp
                         }
                     }
 
@@ -318,7 +316,7 @@ fun ZheenApp(
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
                                 .onGloballyPositioned { coordinates ->
-                                    if (coordinates.size.height > 0 && !isCapsuleCollapsed) {
+                                    if (coordinates.size.height > 0) {
                                         measuredCapsuleHeightPx = coordinates.size.height
                                     }
                                 }
