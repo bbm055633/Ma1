@@ -81,15 +81,62 @@ fun AgentsScreen(
                     .fillMaxSize()
                     .padding(top = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
-                contentPadding = PaddingValues(bottom = 80.dp)
+                contentPadding = PaddingValues(top = 4.dp, bottom = 100.dp)
             ) {
-                items(filteredAgents) { agent ->
-                    OneUi9AgentCard(
-                        agent = agent,
-                        primaryColor = userPrimaryColor,
-                        isEnglish = isEnglish,
-                        onStartChat = { onNavigate(ActiveScreen.AgentChat(agent.id)) }
-                    )
+                if (filteredAgents.isEmpty()) {
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(24.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                            shadowElevation = 2.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 40.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = userPrimaryColor.copy(alpha = 0.12f),
+                                    modifier = Modifier.size(64.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            Icons.Default.SupportAgent,
+                                            contentDescription = null,
+                                            tint = userPrimaryColor,
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                }
+                                Text(
+                                    text = if (isEnglish) "No agents in this category" else "لا يوجد وكلاء في هذا التصنيف حالياً",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (isEnglish) "Try selecting another category from the bottom filter" else "جرّب اختيار تصنيف آخر من شريط الفئات بالأسفل للاطلاع على باقي الوكلاء المتخصصين",
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    items(filteredAgents) { agent ->
+                        OneUi9AgentCard(
+                            agent = agent,
+                            primaryColor = userPrimaryColor,
+                            isEnglish = isEnglish,
+                            onStartChat = { onNavigate(ActiveScreen.AgentChat(agent.id)) }
+                        )
+                    }
                 }
             }
 

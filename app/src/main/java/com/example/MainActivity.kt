@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
 
@@ -221,12 +222,25 @@ fun ZheenApp(
                         )
                     },
                     containerColor = androidx.compose.ui.graphics.Color.Transparent,
-                    contentWindowInsets = ScaffoldDefaults.contentWindowInsets
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { innerPadding ->
+                    val density = LocalDensity.current
+                    var measuredCapsuleHeightPx by remember { mutableIntStateOf(0) }
+                    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+                    val topContentPadding = remember(measuredCapsuleHeightPx, density, statusBarTop) {
+                        if (measuredCapsuleHeightPx > 0) {
+                            with(density) { measuredCapsuleHeightPx.toDp() }
+                        } else {
+                            statusBarTop + 80.dp
+                        }
+                    }
+
+                    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                    val mainBottomBarHeight = 68.dp + navBarBottom
+                    val bottomContentPadding = innerPadding.calculateBottomPadding().coerceAtLeast(mainBottomBarHeight)
+
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         val currentTabTitle = remember(currentTab, isEnglish) {
                             when (currentTab) {
@@ -242,7 +256,10 @@ fun ZheenApp(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(top = 104.dp)
+                                .padding(
+                                    top = topContentPadding,
+                                    bottom = bottomContentPadding
+                                )
                         ) {
                             when (currentTab) {
                                 0 -> HomeScreen(
@@ -276,7 +293,13 @@ fun ZheenApp(
                         // Standalone ZheenFloatingCapsule floating over content
                         ZheenFloatingCapsule(
                             screenTitle = currentTabTitle,
-                            modifier = Modifier.align(Alignment.TopCenter)
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .onGloballyPositioned { coordinates ->
+                                    if (coordinates.size.height > 0) {
+                                        measuredCapsuleHeightPx = coordinates.size.height
+                                    }
+                                }
                         )
                     }
                 }

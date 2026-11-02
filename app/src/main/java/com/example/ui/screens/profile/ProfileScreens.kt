@@ -54,9 +54,9 @@ fun OneUi9SubScreenTopBar(
     ) {
         Surface(
             shape = RoundedCornerShape(32.dp),
-            color = Color.White,
-            shadowElevation = 4.dp,
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF1EFE9)),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 3.dp,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
@@ -74,12 +74,12 @@ fun OneUi9SubScreenTopBar(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFF9F6F0))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = "رجوع",
-                        tint = Color(0xFF1C1B1A)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -88,7 +88,7 @@ fun OneUi9SubScreenTopBar(
                     text = title,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1C1B1A)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 // Trailing slot or spacer

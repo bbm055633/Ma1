@@ -77,7 +77,7 @@ fun CalendarScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 8.dp, bottom = 80.dp, start = 16.dp, end = 16.dp)
+                    .padding(top = 8.dp, start = 16.dp, end = 16.dp)
             ) {
                 // Tab Content
             when (activeTopTab) {
@@ -191,7 +191,7 @@ fun CalendarScreen(
 
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(bottom = 90.dp),
+                            contentPadding = PaddingValues(top = 4.dp, bottom = 100.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             if (tasks.isEmpty()) {
@@ -394,7 +394,7 @@ fun CalendarScreen(
 
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(bottom = 90.dp),
+                            contentPadding = PaddingValues(top = 4.dp, bottom = 100.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             if (filteredNotes.isEmpty()) {

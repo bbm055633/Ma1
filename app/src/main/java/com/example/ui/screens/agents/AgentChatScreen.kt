@@ -73,9 +73,9 @@ fun AgentChatScreen(
             ) {
                 Surface(
                     shape = RoundedCornerShape(32.dp),
-                    color = Color.White,
-                    shadowElevation = 4.dp,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF1EFE9)),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 3.dp,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(64.dp)
@@ -96,13 +96,13 @@ fun AgentChatScreen(
                                 modifier = Modifier
                                     .size(42.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFFF9F6F0))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
                                     .testTag("agent_chat_back_button")
                             ) {
                                 Icon(
                                     imageVector = if (isEnglish) Icons.AutoMirrored.Filled.ArrowBack else Icons.AutoMirrored.Filled.ArrowForward,
                                     contentDescription = if (isEnglish) "Back" else "رجوع",
-                                    tint = Color(0xFF1C1B1A)
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 
@@ -252,12 +252,12 @@ fun AgentChatScreen(
                 }
             }
 
-            // Input Bar in One UI 9 Liquid Glass Style
+            // Input Bar in Liquid Glass / M3 Style
             Surface(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
                 shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF1EFE9)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -274,7 +274,7 @@ fun AgentChatScreen(
                             Text(
                                 text = if (isEnglish) "Ask ${agent.localizedName(isEnglish)} anything..." else "اطلب مساعدة من ${agent.name}...",
                                 fontSize = 13.sp,
-                                color = Color(0xFF94A3B8)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             )
                         },
                         modifier = Modifier
@@ -282,8 +282,8 @@ fun AgentChatScreen(
                             .testTag("agent_chat_input"),
                         shape = RoundedCornerShape(24.dp),
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFFF9F6F0),
-                            unfocusedContainerColor = Color(0xFFF9F6F0),
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent
                         ),

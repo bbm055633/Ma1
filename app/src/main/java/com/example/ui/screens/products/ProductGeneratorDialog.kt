@@ -82,9 +82,9 @@ fun ProductGeneratorScreen(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(32.dp),
-                        color = Color.White,
-                        shadowElevation = 4.dp,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF1EFE9)),
+                        color = MaterialTheme.colorScheme.surface,
+                        shadowElevation = 3.dp,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(64.dp)
@@ -108,13 +108,13 @@ fun ProductGeneratorScreen(
                                     modifier = Modifier
                                         .size(42.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFFF9F6F0))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
                                         .testTag("product_gen_back_button")
                                 ) {
                                     Icon(
                                         imageVector = if (isEnglish) Icons.AutoMirrored.Filled.ArrowBack else Icons.AutoMirrored.Filled.ArrowForward,
                                         contentDescription = if (isEnglish) "Back" else "رجوع",
-                                        tint = Color(0xFF1C1B1A)
+                                        tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
 
@@ -123,7 +123,7 @@ fun ProductGeneratorScreen(
                                         text = product.localizedTitle(isEnglish),
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF1C1B1A)
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         text = product.localizedCategory(isEnglish),
@@ -159,12 +159,12 @@ fun ProductGeneratorScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
-                // Description Card: Samsung One UI 9 White 24px Card
+                // Description Card: Rounded 24px Card
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    color = Color.White,
-                    shadowElevation = 3.dp,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF1EFE9)),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 2.dp,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -189,7 +189,7 @@ fun ProductGeneratorScreen(
                         Text(
                             text = product.localizedDescription(isEnglish),
                             fontSize = 13.sp,
-                            color = Color(0xFF6E685F),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             lineHeight = 18.sp
                         )
                     }
@@ -197,12 +197,12 @@ fun ProductGeneratorScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Inputs Card: Pure White 24px Card
+                // Inputs Card: Rounded 24px Card
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    color = Color.White,
-                    shadowElevation = 3.dp,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF1EFE9)),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 2.dp,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -214,12 +214,12 @@ fun ProductGeneratorScreen(
                             text = if (isEnglish) "Generation Parameters & Requirements:" else "بيانات ومحددات التوليد:",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1C1B1A)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Dynamic Inputs with One UI 9 rounded borders
+                        // Dynamic Inputs with M3 rounded borders
                         localizedFields.forEach { field ->
                             OutlinedTextField(
                                 value = inputValues[field] ?: "",
@@ -231,9 +231,9 @@ fun ProductGeneratorScreen(
                                     .padding(vertical = 5.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = userPrimaryColor,
-                                    unfocusedBorderColor = Color(0xFFE8E4DC),
-                                    focusedContainerColor = Color(0xFFF9F6F0),
-                                    unfocusedContainerColor = Color(0xFFF9F6F0)
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
                                 )
                             )
                         }
