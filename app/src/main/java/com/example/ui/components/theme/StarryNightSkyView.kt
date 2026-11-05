@@ -277,6 +277,7 @@ private fun getSkyColors(preset: SkyColorPreset): List<Color> {
         SkyColorPreset.OCEAN -> listOf(Color(0xFF082F49), Color(0xFF0369A1), Color(0xFF0EA5E9))
         SkyColorPreset.PINK_SUNSET -> listOf(Color(0xFF581C87), Color(0xFF9D174D), Color(0xFFF43F5E))
         SkyColorPreset.LAVENDER -> listOf(Color(0xFF312E81), Color(0xFF4F46E5), Color(0xFF818CF8))
+        else -> preset.hexColors.map { Color(android.graphics.Color.parseColor(it)) }
     }
 }
 
@@ -447,5 +448,6 @@ private fun DrawScope.drawTerrain(terrainType: TerrainType, w: Float, h: Float) 
             }
             drawPath(forestPath, color = darkHorizon, style = Fill)
         }
+        else -> {}
     }
 }

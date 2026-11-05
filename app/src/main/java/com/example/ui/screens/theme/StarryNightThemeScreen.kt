@@ -563,7 +563,7 @@ private fun SkyPresetPill(
     isHighlight: Boolean = false
 ) {
     val isSelected = preset == currentPreset
-    val colors = preset.hexColors.map { Color(it) }
+    val colors = preset.hexColors.map { Color(android.graphics.Color.parseColor(it)) }
 
     Surface(
         onClick = onClick,
