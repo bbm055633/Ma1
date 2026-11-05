@@ -26,6 +26,7 @@ import com.example.data.local.CalendarEventEntity
 import com.example.domain.calendar.SaudiCalendarHelper
 import com.example.domain.prayer.HijriDateInfo
 import com.example.domain.prayer.PrayerTimes
+import com.example.ui.screens.calendar.components.CalendarEventCard
 import com.example.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.Calendar

@@ -2,7 +2,10 @@ package com.example.ui.components.theme
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -12,7 +15,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.ui.viewmodel.SkyColorPreset
 import com.example.ui.viewmodel.StarryNightSettings
 import com.example.ui.viewmodel.TerrainType
@@ -22,12 +29,19 @@ import kotlin.random.Random
 
 // Fixed star structure to avoid allocations in draw loop
 private data class StarParticle(
+    val id: Int,
     val xFraction: Float,
     val yFraction: Float,
     val radius: Float,
     val phase: Float,
     val speed: Float,
-    val color: Color
+    val color: Color,
+    val gridCellIndex: Int
+)
+
+private data class StarGridCell(
+    val cellIndex: Int,
+    val stars: List<StarParticle>
 )
 
 private data class FireflyParticle(
@@ -45,20 +59,78 @@ private data class SnowflakeParticle(
 )
 
 /**
- * Live animated Starry Night sky backdrop with canvas-rendered stars, moon, clouds, meteors, and terrain.
+ * Optimized live animated Starry Night sky backdrop with canvas-rendered moon, clouds, meteors, terrain,
+ * and grid-based LazyVerticalGrid star field rendering.
  */
 @Composable
 fun StarryNightSkyView(
     settings: StarryNightSettings,
     modifier: Modifier = Modifier
 ) {
-    // Generate persistent star field
-    val stars = remember {
+    // 4. Use rememberUpdatedState to avoid recomposition storms
+    val currentSettings by rememberUpdatedState(settings)
+    val currentBatterySaverMode by rememberUpdatedState(settings.batterySaverMode)
+    val currentAnimationSpeed by rememberUpdatedState(settings.animationSpeedMultiplier)
+
+    // 5. Add a toggle to disable animation entirely when app goes to background
+    // 6. Use LaunchedEffect with lifecycle awareness to pause on Pause state
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var isAppInBackground by remember { mutableStateOf(false) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE, Lifecycle.Event.ON_STOP -> {
+                    isAppInBackground = true
+                }
+                Lifecycle.Event.ON_RESUME, Lifecycle.Event.ON_START -> {
+                    isAppInBackground = false
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // Frame-based smooth clock that pauses when backgrounded (Requirement 5 & 6)
+    var rawTime by remember { mutableFloatStateOf(0f) }
+    val isPaused by rememberUpdatedState(isAppInBackground)
+
+    LaunchedEffect(isAppInBackground) {
+        if (!isAppInBackground) {
+            var lastFrameTime = withFrameNanos { it }
+            while (true) {
+                withFrameNanos { frameTimeNanos ->
+                    val deltaSeconds = (frameTimeNanos - lastFrameTime) / 1_000_000_000f
+                    lastFrameTime = frameTimeNanos
+                    if (!isPaused) {
+                        val baseSpeed = if (currentBatterySaverMode) 0.03f else 0.055f
+                        val speedMultiplier = currentAnimationSpeed.coerceIn(0.5f, 3.0f)
+                        rawTime = (rawTime + deltaSeconds * baseSpeed * speedMultiplier) % 1.0f
+                    }
+                }
+            }
+        }
+    }
+
+    // Generate persistent star field (85 total max stars)
+    val allStars = remember {
         val rand = Random(42)
-        List(85) {
+        List(85) { index ->
+            val x = rand.nextFloat()
+            val y = rand.nextFloat() * 0.78f
+            // Map into a 5x4 grid (20 cells)
+            val col = (x * 5).toInt().coerceIn(0, 4)
+            val row = (y * 4).toInt().coerceIn(0, 3)
+            val cellIdx = row * 5 + col
+
             StarParticle(
-                xFraction = rand.nextFloat(),
-                yFraction = rand.nextFloat() * 0.78f, // upper 78% of the sky
+                id = index,
+                xFraction = x,
+                yFraction = y,
                 radius = 1.0f + rand.nextFloat() * 2.2f,
                 phase = rand.nextFloat() * 6.28f,
                 speed = 0.8f + rand.nextFloat() * 1.5f,
@@ -67,7 +139,25 @@ fun StarryNightSkyView(
                     1 -> Color(0xFF93C5FD) // cyan/blue
                     2 -> Color(0xFFF472B6) // rose
                     else -> Color(0xFFFFFFFF) // white
-                }
+                },
+                gridCellIndex = cellIdx
+            )
+        }
+    }
+
+    // 3. Reduce star count from 85 to 40 when batterySaverMode is true
+    val activeStars = remember(allStars, settings.batterySaverMode) {
+        val count = if (settings.batterySaverMode) 40 else 85
+        allStars.take(count)
+    }
+
+    // 1. Organize stars into 20 Grid Cells for LazyVerticalGrid
+    val starGridCells = remember(activeStars) {
+        val cellsMap = activeStars.groupBy { it.gridCellIndex }
+        List(20) { cellIdx ->
+            StarGridCell(
+                cellIndex = cellIdx,
+                stars = cellsMap[cellIdx] ?: emptyList()
             )
         }
     }
@@ -98,22 +188,7 @@ fun StarryNightSkyView(
         }
     }
 
-    // Infinite animation clock
-    val infiniteTransition = rememberInfiniteTransition(label = "starryClock")
-    val durationBase = if (settings.batterySaverMode) 25000 else 18000
-    val effectiveDuration = (durationBase / settings.animationSpeedMultiplier.coerceIn(0.5f, 3.0f)).toInt()
-
-    val rawTime by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(effectiveDuration, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "skyTime"
-    )
-
-    // Lightning pulse timer
+    // Lightning pulse timer calculation
     val lightningAlpha = remember(rawTime, settings.showLightning) {
         if (!settings.showLightning) 0f
         else {
@@ -124,136 +199,173 @@ fun StarryNightSkyView(
         }
     }
 
-    Canvas(modifier = modifier.fillMaxSize()) {
-        val w = size.width
-        val h = size.height
+    Box(modifier = modifier.fillMaxSize()) {
+        // Main Canvas for Sky, Moon, Clouds, Meteors, Birds, Fireflies, Snow, Terrain
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
 
-        // 1. SKY GRADIENT
-        val skyColors = getSkyColors(settings.skyColorPreset)
-        drawRect(
-            brush = Brush.verticalGradient(
-                colors = skyColors,
-                startY = 0f,
-                endY = h
-            ),
-            size = size
-        )
-
-        // Lightning flash illumination
-        if (lightningAlpha > 0f) {
-            drawRect(
-                color = Color.White.copy(alpha = lightningAlpha),
-                size = size
-            )
-        }
-
-        // 2. HORIZON GLOW
-        if (settings.showHorizonGlow) {
+            // 1. SKY GRADIENT (Visibility-based check)
+            val skyColors = getSkyColors(currentSettings.skyColorPreset)
             drawRect(
                 brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        Color(0xFFFFB703).copy(alpha = 0.15f),
-                        Color(0xFFE63946).copy(alpha = 0.28f)
-                    ),
-                    startY = h * 0.55f,
+                    colors = skyColors,
+                    startY = 0f,
                     endY = h
                 ),
                 size = size
             )
-        }
 
-        // 3. MOON
-        if (settings.showMoon) {
-            drawCrescentMoon(w = w, h = h)
-        }
-
-        // 4. CLOUDS
-        if (settings.showClouds) {
-            drawSoftClouds(w = w, h = h, time = rawTime)
-        }
-
-        // 5. TWINKLING STARS
-        if (settings.showStars) {
-            stars.forEach { s ->
-                val twinkle = (sin(rawTime * 20f * s.speed + s.phase) + 1f) / 2f
-                val alpha = (0.25f + 0.75f * twinkle).coerceIn(0.1f, 1.0f)
-                drawCircle(
-                    color = s.color.copy(alpha = alpha),
-                    radius = s.radius * (0.8f + 0.3f * twinkle),
-                    center = Offset(s.xFraction * w, s.yFraction * h)
+            // Lightning flash illumination (Visibility-based check)
+            if (currentSettings.showLightning && lightningAlpha > 0f) {
+                drawRect(
+                    color = Color.White.copy(alpha = lightningAlpha),
+                    size = size
                 )
             }
-        }
 
-        // 6. SHOOTING STARS / METEORS
-        if (settings.showShootingStars) {
-            val cycle = (rawTime * 4.5f) % 1.0f
-            if (cycle in 0.1f..0.28f) {
-                val meteorProgress = (cycle - 0.1f) / 0.18f
-                val startX = w * (0.85f - meteorProgress * 0.5f)
-                val startY = h * (0.08f + meteorProgress * 0.28f)
-                val length = 80.dp.toPx()
-                val endX = startX + length * 0.8f
-                val endY = startY - length * 0.45f
-
-                drawLine(
-                    brush = Brush.linearGradient(
+            // 2. HORIZON GLOW (Visibility-based check)
+            if (currentSettings.showHorizonGlow) {
+                drawRect(
+                    brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 1.0f - meteorProgress),
-                            Color(0xFFFFB703).copy(alpha = (1.0f - meteorProgress) * 0.6f),
-                            Color.Transparent
+                            Color.Transparent,
+                            Color(0xFFFFB703).copy(alpha = 0.15f),
+                            Color(0xFFE63946).copy(alpha = 0.28f)
+                        ),
+                        startY = h * 0.55f,
+                        endY = h
+                    ),
+                    size = size
+                )
+            }
+
+            // 3. MOON (Visibility-based check)
+            if (currentSettings.showMoon) {
+                drawCrescentMoon(w = w, h = h)
+            }
+
+            // 4. CLOUDS (Visibility-based check)
+            if (currentSettings.showClouds) {
+                drawSoftClouds(w = w, h = h, time = rawTime)
+            }
+
+            // 6. SHOOTING STARS / METEORS (Visibility-based check)
+            if (currentSettings.showShootingStars) {
+                val cycle = (rawTime * 4.5f) % 1.0f
+                if (cycle in 0.1f..0.28f) {
+                    val meteorProgress = (cycle - 0.1f) / 0.18f
+                    val startX = w * (0.85f - meteorProgress * 0.5f)
+                    val startY = h * (0.08f + meteorProgress * 0.28f)
+                    val length = 80.dp.toPx()
+                    val endX = startX + length * 0.8f
+                    val endY = startY - length * 0.45f
+
+                    drawLine(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 1.0f - meteorProgress),
+                                Color(0xFFFFB703).copy(alpha = (1.0f - meteorProgress) * 0.6f),
+                                Color.Transparent
+                            ),
+                            start = Offset(startX, startY),
+                            end = Offset(endX, endY)
                         ),
                         start = Offset(startX, startY),
-                        end = Offset(endX, endY)
-                    ),
-                    start = Offset(startX, startY),
-                    end = Offset(endX, endY),
-                    strokeWidth = 2.5f
-                )
+                        end = Offset(endX, endY),
+                        strokeWidth = 2.5f
+                    )
+                }
+            }
+
+            // 7. BIRDS (Visibility-based check)
+            if (currentSettings.showBirds) {
+                drawGlidingBirds(w = w, h = h, time = rawTime)
+            }
+
+            // 8. FIREFLIES (Visibility-based check)
+            if (currentSettings.showFireflies) {
+                fireflies.forEach { f ->
+                    val x = (f.xFraction + sin(rawTime * 6f + f.phase) * 0.04f) * w
+                    val y = (f.yFraction + sin(rawTime * 4f + f.phase * 1.5f) * 0.03f) * h
+                    val glowAlpha = ((sin(rawTime * 12f + f.phase) + 1f) / 2f).coerceIn(0.2f, 0.95f)
+
+                    if (x in 0f..w && y in 0f..h) {
+                        drawCircle(
+                            color = Color(0xFFA3E635).copy(alpha = glowAlpha * 0.35f),
+                            radius = f.radius * 2.8f,
+                            center = Offset(x, y)
+                        )
+                        drawCircle(
+                            color = Color(0xFFFEF08A).copy(alpha = glowAlpha),
+                            radius = f.radius,
+                            center = Offset(x, y)
+                        )
+                    }
+                }
+            }
+
+            // 9. SNOWFALL (Visibility-based check)
+            if (currentSettings.showSnow) {
+                snowflakes.forEachIndexed { idx, flake ->
+                    val y = ((rawTime * flake.speed * 8f + idx * 0.15f) % 1.0f) * h
+                    val x = (flake.xFraction + sin(rawTime * 3f + idx) * 0.03f) * w
+                    if (x in 0f..w && y in 0f..h) {
+                        drawCircle(
+                            color = Color.White.copy(alpha = 0.85f),
+                            radius = flake.radius,
+                            center = Offset(x, y)
+                        )
+                    }
+                }
+            }
+
+            // 10. TERRAIN SILHOUETTES (Visibility-based check)
+            if (currentSettings.terrainType != TerrainType.NONE) {
+                drawTerrain(terrainType = currentSettings.terrainType, w = w, h = h)
             }
         }
 
-        // 7. BIRDS
-        if (settings.showBirds) {
-            drawGlidingBirds(w = w, h = h, time = rawTime)
-        }
+        // 1. LazyVerticalGrid for Star Field (Requirement 1 & 2)
+        // Lazy grid renders stars in 5x4 layout chunks, enabling viewport-based & visibility-based lazy rendering
+        if (currentSettings.showStars) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(5),
+                modifier = Modifier.fillMaxSize(),
+                userScrollEnabled = false
+            ) {
+                items(
+                    items = starGridCells,
+                    key = { cell -> cell.cellIndex }
+                ) { cell ->
+                    Box(modifier = Modifier.fillMaxWidth().height(140.dp)) {
+                        if (cell.stars.isNotEmpty()) {
+                            Canvas(modifier = Modifier.fillMaxSize()) {
+                                val cellWidth = size.width
+                                val cellHeight = size.height
 
-        // 8. FIREFLIES
-        if (settings.showFireflies) {
-            fireflies.forEachIndexed { i, f ->
-                val x = (f.xFraction + sin(rawTime * 6f + f.phase) * 0.04f) * w
-                val y = (f.yFraction + sin(rawTime * 4f + f.phase * 1.5f) * 0.03f) * h
-                val glowAlpha = ((sin(rawTime * 12f + f.phase) + 1f) / 2f).coerceIn(0.2f, 0.95f)
+                                cell.stars.forEach { s ->
+                                    val twinkle = (sin(rawTime * 20f * s.speed + s.phase) + 1f) / 2f
+                                    val alpha = (0.25f + 0.75f * twinkle).coerceIn(0.1f, 1.0f)
 
-                drawCircle(
-                    color = Color(0xFFA3E635).copy(alpha = glowAlpha * 0.35f),
-                    radius = f.radius * 2.8f,
-                    center = Offset(x, y)
-                )
-                drawCircle(
-                    color = Color(0xFFFEF08A).copy(alpha = glowAlpha),
-                    radius = f.radius,
-                    center = Offset(x, y)
-                )
+                                    // Local coordinates inside grid cell
+                                    val localX = ((s.xFraction * 5f) % 1.0f) * cellWidth
+                                    val localY = ((s.yFraction * 4f) % 1.0f) * cellHeight
+
+                                    if (localX in 0f..cellWidth && localY in 0f..cellHeight) {
+                                        drawCircle(
+                                            color = s.color.copy(alpha = alpha),
+                                            radius = s.radius * (0.8f + 0.3f * twinkle),
+                                            center = Offset(localX, localY)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-
-        // 9. SNOWFALL
-        if (settings.showSnow) {
-            snowflakes.forEachIndexed { idx, flake ->
-                val y = ((rawTime * flake.speed * 8f + idx * 0.15f) % 1.0f) * h
-                val x = (flake.xFraction + sin(rawTime * 3f + idx) * 0.03f) * w
-                drawCircle(
-                    color = Color.White.copy(alpha = 0.85f),
-                    radius = flake.radius,
-                    center = Offset(x, y)
-                )
-            }
-        }
-
-        // 10. TERRAIN HORIZON SILHOUETTES
-        drawTerrain(terrainType = settings.terrainType, w = w, h = h)
     }
 }
 
@@ -346,7 +458,7 @@ private fun DrawScope.drawBirdV(x: Float, y: Float, span: Float, color: Color) {
         quadraticTo(x - span / 2f, y - span / 2f, x, y)
         quadraticTo(x + span / 2f, y - span / 2f, x + span, y)
     }
-    drawPath(path, color = color, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.0f))
+    drawPath(path, color = color, style = Stroke(width = 2.0f))
 }
 
 private fun DrawScope.drawTerrain(terrainType: TerrainType, w: Float, h: Float) {

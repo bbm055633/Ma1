@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.CalendarEventEntity
+import com.example.ui.screens.calendar.components.CalendarEventCard
 import com.example.ui.theme.EmeraldPrimary
 import java.text.SimpleDateFormat
 import java.util.Calendar

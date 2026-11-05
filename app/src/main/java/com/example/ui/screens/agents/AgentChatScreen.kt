@@ -29,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.models.AgentDataDefaults
-import com.example.ui.screens.home.ChatBubble
+import com.example.ui.screens.home.components.ChatBubble
 import com.example.ui.theme.*
 import com.example.ui.util.*
 import com.example.ui.viewmodel.MainViewModel

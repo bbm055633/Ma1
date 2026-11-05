@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import com.example.data.local.CalendarEventEntity
 import com.example.data.local.NoteEntity
 import com.example.data.local.TaskEntity
+import com.example.ui.screens.calendar.components.CalendarEventCard
+import com.example.ui.screens.calendar.components.NoteCard
 import com.example.domain.calendar.SaudiCalendarHelper
 import com.example.domain.calendar.SaudiDayLifestyleInfo
 import com.example.domain.prayer.HijriDateInfo
