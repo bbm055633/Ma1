@@ -19,7 +19,7 @@ import org.robolectric.annotation.Config
  * using an in-memory SQLite database.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36])
+@Config(sdk = [34])
 class ZheenRepositoryTest {
 
     private lateinit var database: AppDatabase
