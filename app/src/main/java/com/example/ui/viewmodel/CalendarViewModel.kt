@@ -277,4 +277,8 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
             )
         }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+    }
 }

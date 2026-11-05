@@ -48,3 +48,10 @@
 
 # Coroutines
 -dontwarn kotlinx.coroutines.**
+
+# Optimize & Shrink Material Icons
+-dontwarn androidx.compose.material.icons.**
+
+# R8 Code Optimization
+-optimizationpasses 5
+-allowaccessmodification

@@ -1,5 +1,6 @@
 package com.example.ui.viewmodel
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.example.ui.theme.AppDesignStyle
 import com.example.ui.theme.AppThemePalette
@@ -38,6 +39,7 @@ enum class TerrainType(
     MODERN_SKYLINE("أفق المعالم", "Modern Skyline")
 }
 
+@Immutable
 data class StarryNightSettings(
     val isEnabled: Boolean = false,
     val skyColorPreset: SkyColorPreset = SkyColorPreset.DEFAULT,

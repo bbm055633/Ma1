@@ -1,9 +1,11 @@
 package com.example.domain.prayer
 
+import androidx.compose.runtime.Immutable
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.*
 
+@Immutable
 data class CityLocation(
     val nameAr: String,
     val nameEn: String,
@@ -12,6 +14,7 @@ data class CityLocation(
     val timezone: Double = 3.0 // AST (Arabia Standard Time = UTC+3)
 )
 
+@Immutable
 data class PrayerTimes(
     val fajr: String,
     val sunrise: String,
@@ -25,6 +28,7 @@ data class PrayerTimes(
     val isDndActive: Boolean // DND active 5 mins before Iqamah until 25 mins after prayer
 )
 
+@Immutable
 data class HijriDateInfo(
     val day: Int,
     val monthNameAr: String,
@@ -34,6 +38,7 @@ data class HijriDateInfo(
     val fastingTitle: String?
 )
 
+@Immutable
 data class PrayerScheduleItem(
     val name: String,
     val formattedTime: String,

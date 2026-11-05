@@ -1,5 +1,8 @@
 package com.example.ui.theme
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -106,7 +109,19 @@ fun ZheenTheme(
     content: @Composable () -> Unit
 ) {
     val effectiveColor = if (primaryColor != FahadColors2027.Light.Primary) primaryColor else palette.primaryColor
-    val colorScheme = createDynamicColorScheme(darkTheme, effectiveColor)
+    val baseColorScheme = createDynamicColorScheme(darkTheme, effectiveColor)
+
+    val animatedPrimary by animateColorAsState(baseColorScheme.primary, animationSpec = tween(400), label = "theme_primary")
+    val animatedBackground by animateColorAsState(baseColorScheme.background, animationSpec = tween(400), label = "theme_bg")
+    val animatedSurface by animateColorAsState(baseColorScheme.surface, animationSpec = tween(400), label = "theme_surface")
+    val animatedOutline by animateColorAsState(baseColorScheme.outline, animationSpec = tween(400), label = "theme_outline")
+
+    val colorScheme = baseColorScheme.copy(
+        primary = animatedPrimary,
+        background = animatedBackground,
+        surface = animatedSurface,
+        outline = animatedOutline
+    )
 
     androidx.compose.runtime.CompositionLocalProvider(
         LocalDesignStyle provides designStyle

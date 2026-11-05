@@ -201,4 +201,8 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     fun setVoicePersona(persona: String) {
         _selectedVoicePersona.value = persona
     }
+
+    override fun onCleared() {
+        super.onCleared()
+    }
 }

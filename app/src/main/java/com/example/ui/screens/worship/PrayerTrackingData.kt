@@ -1,5 +1,6 @@
 package com.example.ui.screens.worship
 
+import androidx.compose.runtime.Stable
 import com.example.domain.models.AdhkarItem
 import com.example.domain.prayer.PrayerTimes
 import com.example.ui.viewmodel.PrayerStreaks
@@ -7,6 +8,7 @@ import com.example.ui.viewmodel.PrayerStreaks
 /**
  * Data class bundling prayer tracking state and callbacks for FaithJourneyPrayerTrackingCard.
  */
+@Stable
 data class PrayerTrackingData(
     val prayerTimes: PrayerTimes,
     val selectedDayIndex: Int = 0,

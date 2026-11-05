@@ -33,6 +33,8 @@ import com.example.ui.theme.ZheenCard
 import com.example.ui.viewmodel.ActiveScreen
 import com.example.ui.viewmodel.MainViewModel
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 @Composable
 fun HomeScreen(
     viewModel: MainViewModel,
@@ -40,17 +42,18 @@ fun HomeScreen(
     hijriDate: HijriDateInfo,
     onNavigate: (ActiveScreen) -> Unit
 ) {
-    val messages by viewModel.homeChatMessages.collectAsState()
-    val isGenerating by viewModel.isHomeGenerating.collectAsState()
-    val isVoiceActive by viewModel.isVoiceActive.collectAsState()
-    val isEnglish by viewModel.isEnglish.collectAsState()
+    val messages by viewModel.homeChatMessages.collectAsStateWithLifecycle()
+    val isGenerating by viewModel.isHomeGenerating.collectAsStateWithLifecycle()
+    val isVoiceActive by viewModel.isVoiceActive.collectAsStateWithLifecycle()
+    val isEnglish by viewModel.isEnglish.collectAsStateWithLifecycle()
+    val chatError by viewModel.chatViewModel.chatError.collectAsStateWithLifecycle()
     var inputPrompt by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val clipboardManager = LocalClipboardManager.current
 
-    val userPrimaryColor by viewModel.userPrimaryColor.collectAsState()
-    val userPrimaryColorHex by viewModel.userPrimaryColorHex.collectAsState()
-    val selectedCity by viewModel.selectedCity.collectAsState()
+    val userPrimaryColor by viewModel.userPrimaryColor.collectAsStateWithLifecycle()
+    val userPrimaryColorHex by viewModel.userPrimaryColorHex.collectAsStateWithLifecycle()
+    val selectedCity by viewModel.selectedCity.collectAsStateWithLifecycle()
     var showColorPickerSheet by remember { mutableStateOf(false) }
     var showAddPinnedDialog by remember { mutableStateOf(false) }
     var pinnedItems by remember { mutableStateOf(listOf("مشروع منصة إعتماد السحابية", "تقرير ميزانية الربع الثالث 2026")) }
@@ -255,7 +258,7 @@ fun HomeScreen(
                             shape = RoundedCornerShape(16.dp),
                             color = MaterialTheme.colorScheme.surface,
                             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f).testTag("home_worship_shortcut")
                         ) {
                             Column(
                                 modifier = Modifier.padding(12.dp),
@@ -586,29 +589,43 @@ fun HomeScreen(
 
                 if (isGenerating) {
                     item {
+                        com.example.ui.components.SkeletonChatBubble()
+                    }
+                }
+
+                if (chatError != null) {
+                    item {
                         Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = MaterialTheme.colorScheme.surface,
-                            shadowElevation = 2.dp,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, userPrimaryColor.copy(alpha = 0.25f)),
+                            shape = RoundedCornerShape(16.dp),
+                            color = Color(0xFFFEF2F2),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFCA5A5)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
                                 modifier = Modifier.padding(14.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    color = userPrimaryColor,
-                                    strokeWidth = 2.5.dp
-                                )
-                                Text(
-                                    text = if (isEnglish) "Fahad AI is thinking and preparing your response..." else "فهد للذكاء الاصطناعي يفكر ويصيغ الإجابة بدقة...",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(Icons.Default.ErrorOutline, contentDescription = "رمز الخطأ", tint = Color(0xFFDC2626))
+                                    Text(
+                                        text = chatError ?: "تعذر الاتصال بـ Gemini API.",
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF991B1B),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                                Button(
+                                    onClick = { viewModel.chatViewModel.retryLastPrompt() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(if (isEnglish) "Retry" else "إعادة المحاولة", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }

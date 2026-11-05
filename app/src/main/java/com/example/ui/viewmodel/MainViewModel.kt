@@ -321,4 +321,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // Wallet Delegation Methods
     fun processTopUp(packageItem: TopUpPackage, method: SaudiPaymentMethod, cardLast4: String = "4210") = walletViewModel.processTopUp(packageItem, method, cardLast4)
     fun processSubscriptionUpgrade(plan: SubscriptionPlan, method: SaudiPaymentMethod, cardLast4: String = "4210") = walletViewModel.processSubscriptionUpgrade(plan, method, cardLast4)
+
+    override fun onCleared() {
+        super.onCleared()
+        prayerViewModel.cleanup()
+        chatViewModel.cleanup()
+    }
 }

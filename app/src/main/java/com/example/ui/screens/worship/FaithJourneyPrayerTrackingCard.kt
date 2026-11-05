@@ -837,6 +837,7 @@ fun PrayerTrackingTableRow(
     val iqamaTime = calculateIqamaTime(azanTime)
     val primaryColor = MaterialTheme.colorScheme.primary
     val isDarkMode = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     val rowBg = when {
         attendance == PrayerStatus.LATE -> if (isDarkMode) Color(0xFF451A03).copy(alpha = 0.4f) else Color(0xFFFEF3C7) // Light orange
@@ -940,6 +941,7 @@ fun PrayerTrackingTableRow(
                     isSelected = attendance == PrayerStatus.IN_MOSQUE,
                     icon = Icons.Default.Mosque,
                     onClick = {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                         onAttendanceSelect(if (attendance == PrayerStatus.IN_MOSQUE) PrayerStatus.NONE else PrayerStatus.IN_MOSQUE)
                     },
                     testTag = "${prayerName}_in_mosque"
@@ -963,6 +965,7 @@ fun PrayerTrackingTableRow(
                     isSelected = attendance == PrayerStatus.INDIVIDUAL,
                     icon = Icons.Default.Home,
                     onClick = {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                         onAttendanceSelect(if (attendance == PrayerStatus.INDIVIDUAL) PrayerStatus.NONE else PrayerStatus.INDIVIDUAL)
                     },
                     testTag = "${prayerName}_at_home"

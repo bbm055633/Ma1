@@ -1,8 +1,10 @@
 package com.example.data.local
 
+import androidx.compose.runtime.Immutable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+@Immutable
 @Entity(tableName = "calendar_events")
 data class CalendarEventEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -16,6 +18,7 @@ data class CalendarEventEntity(
     val isPrayerOverlapWarning: Boolean = false
 )
 
+@Immutable
 @Entity(tableName = "expenses")
 data class ExpenseEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -28,6 +31,7 @@ data class ExpenseEntity(
     val notes: String = ""
 )
 
+@Immutable
 @Entity(tableName = "notes")
 data class NoteEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -38,6 +42,7 @@ data class NoteEntity(
     val isPinned: Boolean = false
 )
 
+@Immutable
 @Entity(tableName = "tasks")
 data class TaskEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -50,6 +55,7 @@ data class TaskEntity(
     val assignedAgent: String = "Mobeen AI"
 )
 
+@Immutable
 @Entity(tableName = "chat_messages")
 data class ChatMessageEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -59,6 +65,7 @@ data class ChatMessageEntity(
     val timestamp: Long = System.currentTimeMillis()
 )
 
+@Immutable
 @Entity(tableName = "prayers")
 data class PrayerEntity(
     @PrimaryKey val date: String,
@@ -85,6 +92,7 @@ data class PrayerEntity(
     val morningAdhkarProgress: String = ""
 )
 
+@Immutable
 @Entity(tableName = "users")
 data class UserEntity(
     @PrimaryKey val email: String,

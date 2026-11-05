@@ -44,7 +44,7 @@ fun QuickActionButton(
                     .background(color.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
+                Icon(imageVector = icon, contentDescription = label, tint = color, modifier = Modifier.size(18.dp))
             }
             Text(
                 text = label,

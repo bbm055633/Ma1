@@ -54,4 +54,8 @@ class WalletViewModel(application: Application) : AndroidViewModel(application) 
         )
         _paymentTransactions.value = listOf(newTxn) + _paymentTransactions.value
     }
+
+    override fun onCleared() {
+        super.onCleared()
+    }
 }

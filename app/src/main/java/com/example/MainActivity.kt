@@ -182,28 +182,28 @@ fun ZheenApp(
     themePalette: com.example.ui.theme.AppThemePalette,
     hasCustomWallpaper: Boolean = false
 ) {
-    val activeScreen by viewModel.activeScreen.collectAsState()
-    val isEnglish by viewModel.isEnglish.collectAsState()
-    val currentTab by viewModel.currentTab.collectAsState()
-    val selectedCity by viewModel.selectedCity.collectAsState()
-    val prayerTimes by viewModel.prayerTimes.collectAsState()
-    val hijriDate by viewModel.hijriDate.collectAsState()
-    val fontScale by viewModel.appFontScale.collectAsState()
-    val densityScale by viewModel.appDensityScale.collectAsState()
-    val customWallpaperUri by viewModel.customWallpaperUri.collectAsState()
-    val wallpaperDimAlpha by viewModel.wallpaperDimAlpha.collectAsState()
-    val repetitionCount by viewModel.repetitionCount.collectAsState()
-    val repetitionTarget by viewModel.repetitionTarget.collectAsState()
-    val repetitionLap by viewModel.repetitionLap.collectAsState()
-    val repetitionDhikrText by viewModel.repetitionDhikrText.collectAsState()
-    val userProfileImageUri by viewModel.userProfileImageUri.collectAsState()
-    val dailyProgress by viewModel.dailyProgress.collectAsState()
-    val isCelebrationActive by viewModel.isDailyCelebrationActive.collectAsState()
-    val designStyle by viewModel.designStyle.collectAsState()
-    val userName by viewModel.userName.collectAsState()
+    val activeScreen by viewModel.activeScreen.collectAsStateWithLifecycle()
+    val isEnglish by viewModel.isEnglish.collectAsStateWithLifecycle()
+    val currentTab by viewModel.currentTab.collectAsStateWithLifecycle()
+    val selectedCity by viewModel.selectedCity.collectAsStateWithLifecycle()
+    val prayerTimes by viewModel.prayerTimes.collectAsStateWithLifecycle()
+    val hijriDate by viewModel.hijriDate.collectAsStateWithLifecycle()
+    val fontScale by viewModel.appFontScale.collectAsStateWithLifecycle()
+    val densityScale by viewModel.appDensityScale.collectAsStateWithLifecycle()
+    val customWallpaperUri by viewModel.customWallpaperUri.collectAsStateWithLifecycle()
+    val wallpaperDimAlpha by viewModel.wallpaperDimAlpha.collectAsStateWithLifecycle()
+    val repetitionCount by viewModel.repetitionCount.collectAsStateWithLifecycle()
+    val repetitionTarget by viewModel.repetitionTarget.collectAsStateWithLifecycle()
+    val repetitionLap by viewModel.repetitionLap.collectAsStateWithLifecycle()
+    val repetitionDhikrText by viewModel.repetitionDhikrText.collectAsStateWithLifecycle()
+    val userProfileImageUri by viewModel.userProfileImageUri.collectAsStateWithLifecycle()
+    val dailyProgress by viewModel.dailyProgress.collectAsStateWithLifecycle()
+    val isCelebrationActive by viewModel.isDailyCelebrationActive.collectAsStateWithLifecycle()
+    val designStyle by viewModel.designStyle.collectAsStateWithLifecycle()
+    val userName by viewModel.userName.collectAsStateWithLifecycle()
 
     var showThemeSelectionDialog by remember { mutableStateOf(false) }
-    val userPrimaryColorHex by viewModel.userPrimaryColorHex.collectAsState()
+    val userPrimaryColorHex by viewModel.userPrimaryColorHex.collectAsStateWithLifecycle()
 
     if (showThemeSelectionDialog) {
         com.example.ui.components.OneUiThemeSelectionDialog(

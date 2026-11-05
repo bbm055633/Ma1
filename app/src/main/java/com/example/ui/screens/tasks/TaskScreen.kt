@@ -311,6 +311,8 @@ fun TaskItemCard(
     val dateFormat = SimpleDateFormat("dd MMM, hh:mm a", java.util.Locale.forLanguageTag("ar"))
     val dateStr = dateFormat.format(Date(task.dueDateMillis))
 
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = Color.White,
@@ -327,7 +329,10 @@ fun TaskItemCard(
         ) {
             Checkbox(
                 checked = task.isCompleted,
-                onCheckedChange = { onToggleComplete() },
+                onCheckedChange = {
+                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    onToggleComplete()
+                },
                 colors = CheckboxDefaults.colors(checkedColor = userPrimaryColor)
             )
 

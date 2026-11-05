@@ -42,6 +42,33 @@ class PrayerTimeCalculatorTest {
     // =========================================================================
 
     @Test
+    fun testPrayerTimesForAllSaudiCities() {
+        val cal = createFixedCalendar(2026, Calendar.NOVEMBER, 5, 12, 0)
+
+        for (city in PrayerTimeCalculator.SAUDI_CITIES) {
+            val times = PrayerTimeCalculator.calculatePrayerTimes(city, cal)
+
+            assertNotNull("PrayerTimes should not be null for ${city.nameAr}", times)
+
+            val fajr = parseTimeToMinutes(times.fajr)
+            val sunrise = parseTimeToMinutes(times.sunrise)
+            val dhuhr = parseTimeToMinutes(times.dhuhr)
+            val asr = parseTimeToMinutes(times.asr)
+            val maghrib = parseTimeToMinutes(times.maghrib)
+            val isha = parseTimeToMinutes(times.isha)
+
+            assertTrue("Fajr < Sunrise in ${city.nameAr}", fajr < sunrise)
+            assertTrue("Sunrise < Dhuhr in ${city.nameAr}", sunrise < dhuhr)
+            assertTrue("Dhuhr < Asr in ${city.nameAr}", dhuhr < asr)
+            assertTrue("Asr < Maghrib in ${city.nameAr}", asr < maghrib)
+            assertTrue("Maghrib < Isha in ${city.nameAr}", maghrib < isha)
+
+            // Verify Umm Al-Qura 90-minute Isha offset rule
+            assertEquals("Isha should be 90 minutes after Maghrib in ${city.nameAr}", maghrib + 90, isha)
+        }
+    }
+
+    @Test
     fun testPrayerTimesAscendingOrderForMultipleDates() {
         val riyadh = PrayerTimeCalculator.SAUDI_CITIES[0]
         val testCalendars = listOf(

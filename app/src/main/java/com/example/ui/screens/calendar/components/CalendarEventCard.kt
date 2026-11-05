@@ -1,5 +1,6 @@
 package com.example.ui.screens.calendar.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -20,6 +21,7 @@ import com.example.data.local.CalendarEventEntity
 import com.example.ui.theme.*
 import java.text.SimpleDateFormat
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarEventCard(
     event: CalendarEventEntity,
@@ -38,13 +40,40 @@ fun CalendarEventCard(
     val cardAlpha = com.example.ui.theme.LocalCardTransparency.current
     val surfaceColor = MaterialTheme.colorScheme.surface.copy(alpha = if (isLiveSky) cardAlpha else 1.0f)
 
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = surfaceColor,
-        tonalElevation = if (isLiveSky) 0.dp else 2.dp,
-        border = if (event.isPrayerOverlapWarning) androidx.compose.foundation.BorderStroke(1.5.dp, WarningOrange) else androidx.compose.foundation.BorderStroke(1.dp, if (isLiveSky) Color.White.copy(alpha = 0.15f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
-        modifier = Modifier.fillMaxWidth()
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { dismissValue ->
+            if (dismissValue == SwipeToDismissBoxValue.EndToStart || dismissValue == SwipeToDismissBoxValue.StartToEnd) {
+                onDelete()
+                true
+            } else false
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFEF4444).copy(alpha = 0.85f), RoundedCornerShape(16.dp))
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DeleteOutline,
+                    contentDescription = "حذف الفعالية",
+                    tint = Color.White
+                )
+            }
+        }
     ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = surfaceColor,
+            tonalElevation = if (isLiveSky) 0.dp else 2.dp,
+            border = if (event.isPrayerOverlapWarning) androidx.compose.foundation.BorderStroke(1.5.dp, WarningOrange) else androidx.compose.foundation.BorderStroke(1.dp, if (isLiveSky) Color.White.copy(alpha = 0.15f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -143,4 +172,5 @@ fun CalendarEventCard(
             }
         }
     }
+}
 }

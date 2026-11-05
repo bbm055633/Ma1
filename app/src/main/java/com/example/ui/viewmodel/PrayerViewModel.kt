@@ -339,7 +339,8 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun detectCurrentLocation(context: android.content.Context) {
-        val resolved = PrayerTimeCalculator.resolveSaudiLocation(context)
+        val appContext = context.applicationContext
+        val resolved = PrayerTimeCalculator.resolveSaudiLocation(appContext)
         _selectedCity.value = resolved
         refreshPrayerTimes()
     }
@@ -633,5 +634,14 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
     fun setRepetitionDhikrText(text: String) {
         _repetitionDhikrText.value = text
         _repetitionCount.value = 0
+    }
+
+    fun cleanup() {
+        // Clear active observers or transient resources
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        cleanup()
     }
 }

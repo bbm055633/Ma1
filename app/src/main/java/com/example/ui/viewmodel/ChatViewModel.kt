@@ -50,24 +50,48 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _isProductGenerating = MutableStateFlow(false)
     val isProductGenerating: StateFlow<Boolean> = _isProductGenerating.asStateFlow()
 
+    private val _chatError = MutableStateFlow<String?>(null)
+    val chatError: StateFlow<String?> = _chatError.asStateFlow()
+
+    private var lastFailedPrompt: Pair<String, PrayerTimes?>? = null
+
+    fun clearError() {
+        _chatError.value = null
+    }
+
+    fun retryLastPrompt() {
+        val failed = lastFailedPrompt
+        if (failed != null) {
+            _chatError.value = null
+            sendHomePrompt(failed.first, failed.second)
+        }
+    }
+
     fun sendHomePrompt(prompt: String, currentPrayerTimes: PrayerTimes? = null) {
         if (prompt.isBlank()) return
         val userMsg = UiChatMessage(isUser = true, text = prompt)
         _homeChatMessages.value = _homeChatMessages.value + userMsg
         _isHomeGenerating.value = true
+        _chatError.value = null
 
         viewModelScope.launch {
-            val prayerInfo = if (currentPrayerTimes != null) {
-                "الوقت الحالي بالرياض. القادم: ${currentPrayerTimes.nextPrayerName} الساعة ${currentPrayerTimes.nextPrayerTime}"
-            } else ""
-            val response = geminiRepo.generateAgentResponse(
-                agentId = "secretary",
-                systemPrompt = "أنت مساعد 'Fahad Ai' الشخصي المتكامل في السعودية. تجمع بين الذكاء التنفيذي والتنظيم ومراعاة العبادات والتقويم.",
-                userPrompt = prompt,
-                contextInfo = prayerInfo
-            )
-            _homeChatMessages.value = _homeChatMessages.value + UiChatMessage(isUser = false, text = response)
-            _isHomeGenerating.value = false
+            try {
+                val prayerInfo = if (currentPrayerTimes != null) {
+                    "الوقت الحالي بالرياض. القادم: ${currentPrayerTimes.nextPrayerName} الساعة ${currentPrayerTimes.nextPrayerTime}"
+                } else ""
+                val response = geminiRepo.generateAgentResponse(
+                    agentId = "secretary",
+                    systemPrompt = "أنت مساعد 'Fahad Ai' الشخصي المتكامل في السعودية. تجمع بين الذكاء التنفيذي والتنظيم ومراعاة العبادات والتقويم.",
+                    userPrompt = prompt,
+                    contextInfo = prayerInfo
+                )
+                _homeChatMessages.value = _homeChatMessages.value + UiChatMessage(isUser = false, text = response)
+            } catch (e: Exception) {
+                lastFailedPrompt = Pair(prompt, currentPrayerTimes)
+                _chatError.value = "تعذر الاتصال بـ Gemini API. يرجى إعادة المحاولة."
+            } finally {
+                _isHomeGenerating.value = false
+            }
         }
     }
 
@@ -152,5 +176,17 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearGeneratedProduct() {
         _generatedProductDoc.value = null
+    }
+
+    fun cleanup() {
+        _isVoiceActive.value = false
+        _isHomeGenerating.value = false
+        _isAgentGenerating.value = false
+        _isProductGenerating.value = false
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        cleanup()
     }
 }
