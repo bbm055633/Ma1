@@ -28,7 +28,7 @@ import org.robolectric.annotation.Config
  * - Chat message sending and receiving
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36])
+@Config(sdk = [34])
 class ComposeUiTests {
 
     @get:Rule

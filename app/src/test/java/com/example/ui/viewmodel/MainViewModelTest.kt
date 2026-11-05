@@ -18,7 +18,7 @@ import org.robolectric.annotation.Config
  * and delegated sub-ViewModel actions.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36])
+@Config(sdk = [34])
 class MainViewModelTest {
 
     private lateinit var viewModel: MainViewModel
